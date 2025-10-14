@@ -207,27 +207,29 @@
 });
 
     sendBtn.addEventListener('click', () => {
+  if (!isLoggedIn) {
+    alert("Silakan login terlebih dahulu untuk mengirim pesan ke global chat!");
+    return;
+  }
+
   const text = input.value.trim();
   if (!text) return;
+
   const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   const currentUser = auth.currentUser;
-  const senderEmail = currentUser ? currentUser.email : null;
 
   push(chatRef, {
     text,
     sender: username,
     time,
-    email: senderEmail
-  });
-  input.value = '';
+    email: currentUser.email
+  })
+    .then(() => {
+      input.value = '';
+      console.log('Message sent!');
+    })
+    .catch(err => console.error('Send error:', err));
 });
-
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendBtn.click();
-      }
-    });
   </script>
 </body>
 </html>
