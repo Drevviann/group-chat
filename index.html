@@ -5,37 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cerydra Community Chat</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+
   <style>
-    body { background-color: #0b141a; color: #fff; font-family: 'Inter', sans-serif; }
+    :root { --vh: 100%; }
+    body {
+      background-color: #0b141a;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: calc(var(--vh, 1vh) * 100);
+    }
+    main { flex: 1; overflow-y: auto; }
+    footer { position: sticky; bottom: 0; }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.1); border-radius: 9999px; }
   </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden">
+<body class="min-h-screen flex flex-col" id="body">
 
   <!-- Header -->
-  <header class="flex items-center gap-3 bg-[#202c33] px-4 py-3 shadow-md">
-    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden">
-      <img src="https://preview.redd.it/i-think-all-3-of-cerydras-design-animations-and-model-are-v0-z7t7a1va8fff1.gif?width=500&auto=webp&s=b019ee031e91d98bf8842e3821fac11679941a99"
-           alt="avatar" class="w-full h-full object-cover">
+  <header class="flex justify-between items-center bg-[#202c33] px-4 py-3 shadow-md">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden">
+        <img src="https://preview.redd.it/i-think-all-3-of-cerydras-design-animations-and-model-are-v0-z7t7a1va8fff1.gif?width=500&auto=webp&s=b019ee031e91d98bf8842e3821fac11679941a99"
+             alt="avatar" class="w-full h-full object-cover">
+      </div>
+      <div class="flex flex-col text-sm sm:text-base">
+        <span class="font-semibold flex items-center gap-1 text-white">
+          Cerydra
+          <img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
+               alt="verified"
+               class="w-3 h-3 sm:w-4 sm:h-4 object-contain" />
+        </span>
+        <span class="text-xs sm:text-sm text-gray-400">Cerydra Community</span>
+      </div>
     </div>
-    <div class="flex flex-col text-sm sm:text-base">
-      <span class="font-semibold flex items-center gap-1 text-white">
-        Cerydra
-        <img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
-             alt="verified"
-             class="w-3 h-3 sm:w-4 sm:h-4 object-contain" />
-      </span>
-      <span class="text-xs sm:text-sm text-gray-400">Cerydra Community</span>
+
+    <!-- User/Login Area -->
+    <div id="userArea" class="text-sm sm:text-base">
+      <button id="loginBtn" class="bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-lg transition text-white"><i class="ri-google-fill text-lg"></i></button>
     </div>
   </header>
 
   <!-- Chat Area -->
   <main id="chatArea"
-        class="flex-1 overflow-y-auto bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXw4_2ttij018oKbf-g2jZbqQ_94vTh7Lqnl2twm0gjQ&s=10')] bg-cover bg-center p-3 sm:p-4 flex flex-col gap-3 sm:gap-4 transition-all duration-300">
+    class="flex-1 overflow-y-auto bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXw4_2ttij018oKbf-g2jZbqQ_94vTh7Lqnl2twm0gjQ&s=10')] bg-cover bg-center p-3 sm:p-4 flex flex-col gap-3 sm:gap-4">
   </main>
 
   <!-- Input Area -->
@@ -55,49 +71,90 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    // === Konfigurasi Firebase ===
     const firebaseConfig = {
       apiKey: "AIzaSyBCz40oTe3y1bcpfxZY8wl4ZPf-Jm-Yn08",
       authDomain: "group-chat-5eb24.firebaseapp.com",
       projectId: "group-chat-5eb24",
       storageBucket: "group-chat-5eb24.firebasestorage.app",
+      databaseURL: "https://group-chat-5eb24-default-rtdb.firebaseio.com",
       messagingSenderId: "1035715492375",
       appId: "1:1035715492375:web:3543ae1fcdecea8c0e7a52"
     };
 
-    // === Inisialisasi Firebase ===
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const chatRef = ref(db, "cerydra_group");
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
     const input = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
     const chatArea = document.getElementById('chatArea');
+    const userArea = document.getElementById('userArea');
 
-    // === Simpan username agar tetap sama ===
-    let username = localStorage.getItem('username');
-    if (!username) {
-      username = "User_" + Math.floor(Math.random() * 1000);
-      localStorage.setItem('username', username);
+    let username = localStorage.getItem('username') || "Guest_" + Math.floor(Math.random() * 1000);
+    let isLoggedIn = false;
+
+    function updateUserUI(user) {
+      if (user) {
+        isLoggedIn = true;
+        username = user.displayName || username;
+        localStorage.setItem('username', username);
+        userArea.innerHTML = `
+          <div class="flex items-center gap-2">
+            <img src="${user.photoURL || 'https://i.imgur.com/0y0y0y0.png'}" class="w-8 h-8 rounded-full border border-gray-600">
+            <span id="displayUsername" class="font-medium">${username}</span>
+            <i id="editName" class="ri-pencil-line text-gray-300 hover:text-white text-lg cursor-pointer"></i>
+            <i id="logoutBtn" class="ri-logout-box-r-line text-red-400 hover:text-red-500 text-lg cursor-pointer"></i>
+          </div>
+        `;
+        document.getElementById('editName').addEventListener('click', editUsername);
+        document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+      } else {
+        isLoggedIn = false;
+        userArea.innerHTML = `
+          <button id="loginBtn" class="bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-lg transition text-white">
+            <i class="ri-google-fill text-lg"></i>
+          </button>
+        `;
+        document.getElementById('loginBtn').addEventListener('click', handleLogin);
+      }
     }
 
-    // === Fungsi render bubble ===
+    function handleLogin() {
+      signInWithPopup(auth, provider)
+        .then(result => updateUserUI(result.user))
+        .catch(err => console.error("Login error:", err));
+    }
+
+    function editUsername() {
+      if (!isLoggedIn) return alert("Hanya pengguna login yang bisa mengganti nama!");
+      const newName = prompt("Ubah nama (maks. 12 karakter):", username);
+      if (!newName) return;
+      if (newName.length > 12) return alert("Maksimal 12 karakter!");
+      username = newName.trim();
+      localStorage.setItem('username', username);
+      document.getElementById('displayUsername').innerText = username;
+    }
+
+    onAuthStateChanged(auth, user => updateUserUI(user));
+
     function renderMessage(text, sender, time) {
       const isYou = sender === username;
       const bubble = document.createElement('div');
       bubble.className = `
-        fade-in ${isYou ? "self-end bg-[#005c4b]" : "self-start bg-[#1f1f1f]"}
+        ${isYou ? "self-end bg-[#005c4b]" : "self-start bg-[#1f1f1f]"}
         ${isYou ? "text-white" : "text-gray-200"}
-        rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 max-w-[80%] sm:max-w-[70%] text-sm sm:text-base shadow
+        rounded-2xl px-3 py-2 max-w-[80%] text-sm shadow
       `;
-
       bubble.innerHTML = `
         <div class='flex items-end gap-2 flex-wrap justify-end'>
           <span class='break-words leading-tight'>${text}</span>
-          <span class='flex items-center gap-1 text-[11px] sm:text-[12px] text-gray-300 whitespace-nowrap'>
+          <span class='flex items-center gap-1 text-[11px] text-gray-300 whitespace-nowrap'>
             ${time}
-            ${isYou ? "<i class='ri-check-double-line text-gray-400 text-[13px] sm:text-[14px]'></i>" : ""}
+            ${isYou ? "<i class='ri-check-double-line text-gray-400 text-[13px]'></i>" : ""}
           </span>
         </div>
         ${!isYou ? `<div class='text-[11px] text-gray-400 mt-1 ml-1'>${sender}</div>` : ""}
@@ -106,23 +163,14 @@
       chatArea.scrollTop = chatArea.scrollHeight;
     }
 
-    // === Muat cache lokal dulu ===
-    const cachedData = JSON.parse(localStorage.getItem('chat_cache') || '[]');
-    cachedData.forEach(m => renderMessage(m.text, m.sender, m.time));
-
-    // === Realtime listener (sync penuh dari Firebase) ===
     onValue(chatRef, snapshot => {
-      const data = snapshot.val();
-      if (!data) return;
-      const messages = Object.entries(data).map(([id, val]) => ({ id, ...val }));
-      localStorage.setItem('chat_cache', JSON.stringify(messages));
-
-      // Render ulang chat (tanpa duplikat, tanpa hilang)
       chatArea.innerHTML = "";
-      messages.forEach(m => renderMessage(m.text, m.sender, m.time));
+      snapshot.forEach(child => {
+        const m = child.val();
+        renderMessage(m.text, m.sender, m.time);
+      });
     });
 
-    // === Kirim Pesan ===
     sendBtn.addEventListener('click', () => {
       const text = input.value.trim();
       if (!text) return;
