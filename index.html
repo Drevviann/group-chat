@@ -201,25 +201,24 @@
     chatArea.appendChild(bubble);
   }
 
-  // 🔹 Render dan auto-scroll jika ada pesan baru
-  onValue(chatRef, snapshot => {
-    const currentScroll = chatArea.scrollTop + chatArea.clientHeight;
-    const atBottom = currentScroll >= chatArea.scrollHeight - 50;
+onValue(chatRef, snapshot => {
+  // Hapus semua pesan lama
+  chatArea.innerHTML = "";
 
-    chatArea.innerHTML = "";
-    snapshot.forEach(child => {
-      const m = child.val();
-      renderMessage(m.text, m.sender, m.time, m.email);
-    });
-
-    // 🔽 Auto-scroll hanya jika user di bawah (atau saat pesan baru datang)
-    if (atBottom) {
-      chatArea.scrollTo({
-        top: chatArea.scrollHeight,
-        behavior: "smooth"
-      });
-    }
+  // Render ulang semua pesan
+  snapshot.forEach(child => {
+    const m = child.val();
+    renderMessage(m.text, m.sender, m.time, m.email);
   });
+
+  // 🔽 Selalu auto-scroll ke bawah setiap kali ada update pesan
+  setTimeout(() => {
+    chatArea.scrollTo({
+      top: chatArea.scrollHeight,
+      behavior: "smooth"
+    });
+  }, 200);
+});
 
   sendBtn.addEventListener('click', () => {
     if (!isLoggedIn) {
