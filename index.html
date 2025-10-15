@@ -77,19 +77,39 @@
   1 pesan baru
 </div>
 
-  <!-- Input Area -->
-  <footer class="flex items-center gap-2 sm:gap-3 bg-[#202c33] p-2 sm:p-3">
-    <div class="flex items-center flex-1 bg-[#2a3942] rounded-full px-3 sm:px-4 py-2 sm:py-3">
-      <input id="messageInput"
-             type="text"
-             placeholder="Ketik pesan..."
-             class="flex-1 bg-transparent text-sm sm:text-base text-white outline-none placeholder-gray-400" />
-    </div>
-    <button id="sendBtn"
-            class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-400 hover:bg-blue-500 flex items-center justify-center transition">
-      <i class="ri-send-plane-2-fill text-lg sm:text-xl text-white"></i>
-    </button>
-  </footer>
+<!-- Input Area -->
+<footer class="flex items-center gap-2 sm:gap-3 bg-[#202c33] p-2 sm:p-3 relative">
+  <!-- Tombol + -->
+  <button id="openStickerBtn"
+          class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#2a3942] hover:bg-[#3b4a54] flex items-center justify-center text-white transition">
+    <i class="ri-add-line text-xl"></i>
+  </button>
+
+  <!-- Input -->
+  <div class="flex items-center flex-1 bg-[#2a3942] rounded-full px-3 sm:px-4 py-2 sm:py-3">
+    <input id="messageInput"
+           type="text"
+           placeholder="Ketik pesan..."
+           class="flex-1 bg-transparent text-sm sm:text-base text-white outline-none placeholder-gray-400" />
+  </div>
+
+  <!-- Tombol kirim -->
+  <button id="sendBtn"
+          class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-400 hover:bg-blue-500 flex items-center justify-center transition">
+    <i class="ri-send-plane-2-fill text-lg sm:text-xl text-white"></i>
+  </button>
+
+  <!-- Popup Sticker -->
+  <div id="stickerPanel"
+       class="hidden absolute bottom-16 left-2 bg-[#1f2c34] p-3 rounded-2xl shadow-xl grid grid-cols-4 sm:grid-cols-5 gap-2 border border-gray-700 z-50">
+    <!-- contoh gambar sticker -->
+    <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+    <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+    <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+    <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+    <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+  </div>
+</footer>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -179,18 +199,21 @@
 
   onAuthStateChanged(auth, user => updateUserUI(user));
 
-function renderMessage(text, sender, time, email = null) {
+function renderMessage(text, sender, time, email = null, photoURL = null) {
   const currentUser = auth.currentUser;
   const isYou = currentUser && email === currentUser.email;
   const isVerified = email === "drevviann@gmail.com";
 
+  // wrapper bubble
   const wrapper = document.createElement("div");
-  wrapper.className = `w-full flex ${isYou ? "justify-end" : "justify-start"}`;
+  wrapper.className = `w-full flex ${isYou ? "justify-end" : "justify-start"} mb-3`;
 
+  // bubble chat
   const bubble = document.createElement("div");
   bubble.className = `
     ${isYou ? "bg-[#005c4b]" : "bg-[#1f1f1f]"}
     text-gray-200 rounded-2xl px-3 py-2 max-w-[80%] text-sm shadow
+    flex flex-col items-start
   `;
 
   const verifiedBadge = isVerified
@@ -198,17 +221,24 @@ function renderMessage(text, sender, time, email = null) {
              alt="verified" class="w-3 h-3 ml-1 inline-block align-middle" />`
     : "";
 
-  bubble.innerHTML = `
-    <div class='flex items-end gap-2 flex-wrap justify-end'>
-      <span class='break-words leading-tight text-white'>${text}</span>
-      <span class='flex items-center gap-1 text-[11px] text-gray-300 whitespace-nowrap'>
-        ${time}
-        ${isYou ? "<i class='ri-check-double-line text-gray-400 text-[13px]'></i>" : ""}
-      </span>
+  // 🔹 Baris atas: foto profil di kiri nama + waktu di kanan
+  const headerHTML = `
+    <div class="flex items-center w-full mb-1">
+      <img src="${photoURL || 'https://i.imgur.com/NJ0pK5z.png'}"
+           alt="profile"
+           class="w-6 h-6 rounded-full object-cover mr-2" />
+      <span class="font-medium text-white">${sender}</span>
+      ${verifiedBadge}
+      <span class="text-[11px] text-gray-400 ml-2">${time}</span>
     </div>
-    ${!isYou ? `<div class='text-[11px] text-gray-400 mt-1 ml-1 flex items-center'>${sender}${verifiedBadge}</div>` : ""}
   `;
 
+  // 🔹 Deteksi pesan teks atau sticker
+  const contentHTML = text.includes("<img")
+    ? `<div class="mt-1 w-full flex justify-center">${text}</div>`
+    : `<div class="break-words leading-tight text-left text-white w-full">${text}</div>`;
+
+  bubble.innerHTML = headerHTML + contentHTML;
   wrapper.appendChild(bubble);
   chatArea.appendChild(wrapper);
 }
@@ -254,7 +284,13 @@ function smoothScrollToBottom(element) {
     if (!text) return;
     const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     const currentUser = auth.currentUser;
-    push(chatRef, { text, sender: username, time, email: currentUser.email })
+    push(chatRef, {
+  text,
+  sender: username,
+  time,
+  email: currentUser.email,
+  photoURL: currentUser.photoURL || "https://i.imgur.com/NJ0pK5z.png"
+})
       .then(() => {
         input.value = "";
         input.focus();
@@ -262,6 +298,41 @@ function smoothScrollToBottom(element) {
       })
       .catch(err => console.error("Send error:", err));
   });
+  
+  // --- Panel Sticker ---
+const openStickerBtn = document.getElementById("openStickerBtn");
+const stickerPanel = document.getElementById("stickerPanel");
+
+openStickerBtn.addEventListener("click", () => {
+  stickerPanel.classList.toggle("hidden");
+});
+
+// Klik di luar panel → sembunyikan
+document.addEventListener("click", (e) => {
+  if (!stickerPanel.contains(e.target) && !openStickerBtn.contains(e.target)) {
+    stickerPanel.classList.add("hidden");
+  }
+});
+
+// Klik salah satu sticker → kirim URL-nya sebagai pesan
+stickerPanel.querySelectorAll("img").forEach(img => {
+  img.addEventListener("click", () => {
+    if (!isLoggedIn) return alert("Silakan login untuk mengirim pesan!");
+    const currentUser = auth.currentUser;
+    const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    push(chatRef, {
+  text: `<img src="${img.src}" class='w-32 h-32 rounded-lg' />`,
+  sender: username,
+  time,
+  email: currentUser.email,
+  photoURL: currentUser.photoURL || "https://i.imgur.com/NJ0pK5z.png"
+});
+
+    stickerPanel.classList.add("hidden");
+    chatArea.scrollTop = chatArea.scrollHeight;
+  });
+});
 </script>
 </body>
 </html>
