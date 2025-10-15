@@ -207,27 +207,19 @@
 }
 
     onValue(chatRef, snapshot => {
-  const messages = [];
-  snapshot.forEach(child => messages.push(child.val()));
+  chatArea.innerHTML = "";
+  snapshot.forEach(child => {
+    const m = child.val();
+    renderMessage(m.text, m.sender, m.time, m.email);
+  });
 
-  // Hitung jumlah pesan yang sudah ada di tampilan
-  const existingCount = chatArea.querySelectorAll('.chat-bubble').length;
-
-  // Tambahkan hanya pesan baru (tanpa reset DOM)
-  if (messages.length > existingCount) {
-    for (let i = existingCount; i < messages.length; i++) {
-      const m = messages[i];
-      renderMessage(m.text, m.sender, m.time, m.email);
-    }
-
-    // Scroll ke bawah saat pesan baru muncul
-    setTimeout(() => {
-      chatArea.scrollTo({
-        top: chatArea.scrollHeight,
-        behavior: "smooth"
-      });
-    }, 100);
-  }
+  // Scroll ke bawah setiap kali pesan baru datang
+  setTimeout(() => {
+    chatArea.scrollTo({
+      top: chatArea.scrollHeight,
+      behavior: "smooth"
+    });
+  }, 300);
 });
 
     sendBtn.addEventListener('click', () => {
@@ -248,20 +240,22 @@
     time,
     email: currentUser.email
   })
-  .then(() => {
-    // Tetap fokus di input supaya keyboard tidak tertutup
-    input.value = '';
-    input.focus();
+    .then(() => {
+      input.value = '';
+      console.log('Message sent!');
 
-    // Scroll ke bawah ke pesan baru
-    setTimeout(() => {
-      chatArea.scrollTo({
-        top: chatArea.scrollHeight,
-        behavior: "smooth"
-      });
-    }, 150);
-  })
-  .catch(err => console.error('Send error:', err));
+      // 🧩 Fokuskan kembali ke input biar keyboard tetap terbuka
+      input.focus();
+
+      // 🔽 Scroll otomatis ke bawah setelah pesan baru muncul
+      setTimeout(() => {
+        chatArea.scrollTo({
+          top: chatArea.scrollHeight,
+          behavior: "smooth"
+        });
+      }, 200);
+    })
+    .catch(err => console.error('Send error:', err));
 });
   </script>
 </body>
