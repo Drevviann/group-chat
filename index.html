@@ -207,11 +207,21 @@
 }
 
     onValue(chatRef, snapshot => {
+    const wasFocused = document.activeElement === input;
+const currentValue = input.value;
   chatArea.innerHTML = "";
   snapshot.forEach(child => {
     const m = child.val();
     renderMessage(m.text, m.sender, m.time, m.email);
+    
+if (wasFocused) {
+  input.focus();
+  input.value = currentValue;
+}
   });
+  
+  
+
 
   // Scroll ke bawah setiap kali pesan baru datang
   setTimeout(() => {
@@ -241,19 +251,24 @@
     email: currentUser.email
   })
     .then(() => {
+      // Jangan hilangkan fokus
+      const wasFocused = document.activeElement === input;
+
       input.value = '';
       console.log('Message sent!');
 
-      // 🧩 Fokuskan kembali ke input biar keyboard tetap terbuka
-      input.focus();
+      // Biarkan keyboard tetap terbuka
+      if (wasFocused) {
+        input.focus();
+      }
 
-      // 🔽 Scroll otomatis ke bawah setelah pesan baru muncul
+      // Scroll otomatis ke bawah
       setTimeout(() => {
         chatArea.scrollTo({
           top: chatArea.scrollHeight,
           behavior: "smooth"
         });
-      }, 200);
+      }, 100);
     })
     .catch(err => console.error('Send error:', err));
 });
