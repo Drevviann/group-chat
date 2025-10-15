@@ -53,10 +53,9 @@
     </div>
   </header>
 
-  <!-- Chat Area -->
-  <main id="chatArea"
-    class="flex-1 overflow-y-auto bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXw4_2ttij018oKbf-g2jZbqQ_94vTh7Lqnl2twm0gjQ&s=10')] bg-cover bg-center p-3 sm:p-4 flex flex-col gap-3 sm:gap-4">
-  </main>
+<main id="chatArea"
+  class="flex-1 overflow-y-auto bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXw4_2ttij018oKbf-g2jZbqQ_94vTh7Lqnl2twm0gjQ&s=10')] bg-cover bg-center p-3 sm:p-4 space-y-3 sm:space-y-4">
+</main>
   
   <!-- 🔔 Notifikasi jumlah pesan baru -->
 <div id="newMsgPopup"
@@ -166,87 +165,81 @@
 
   onAuthStateChanged(auth, user => updateUserUI(user));
 
-  // --- Render pesan ---
-  function renderMessage(text, sender, time, email = null) {
-    const currentUser = auth.currentUser;
-    const isYou = currentUser && email === currentUser.email;
-    const isVerified = email === "drevviann@gmail.com";
+function renderMessage(text, sender, time, email = null) {
+  const currentUser = auth.currentUser;
+  const isYou = currentUser && email === currentUser.email;
+  const isVerified = email === "drevviann@gmail.com";
 
-    const bubble = document.createElement("div");
-    bubble.className = `
-      ${isYou ? "self-end bg-[#005c4b]" : "self-start bg-[#1f1f1f]"}
-      text-gray-200 rounded-2xl px-3 py-2 max-w-[80%] text-sm shadow`;
-    const verifiedBadge = isVerified
-      ? `<img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
-               alt="verified" class="w-3 h-3 ml-1 inline-block align-middle" />`
-      : "";
-    bubble.innerHTML = `
-      <div class='flex items-end gap-2 flex-wrap justify-end'>
-        <span class='break-words leading-tight text-white'>${text}</span>
-        <span class='flex items-center gap-1 text-[11px] text-gray-300 whitespace-nowrap'>
-          ${time}
-          ${isYou ? "<i class='ri-check-double-line text-gray-400 text-[13px]'></i>" : ""}
-        </span>
-      </div>
-      ${!isYou ? `<div class='text-[11px] text-gray-400 mt-1 ml-1 flex items-center'>${sender}${verifiedBadge}</div>` : ""}`;
-    chatArea.appendChild(bubble);
-  }
+  const wrapper = document.createElement("div");
+  wrapper.className = `w-full flex ${isYou ? "justify-end" : "justify-start"}`;
 
-  // --- Scroll dan popup ---
-  function checkScrollPosition() {
-    const distance = chatArea.scrollHeight - (chatArea.scrollTop + chatArea.clientHeight);
-    isNearBottom = distance < 100;
-    if (isNearBottom && newMsgCount > 0) {
-      newMsgCount = 0;
-      popup.classList.add("hidden");
-    }
-  }
+  const bubble = document.createElement("div");
+  bubble.className = `
+    ${isYou ? "bg-[#005c4b]" : "bg-[#1f1f1f]"}
+    text-gray-200 rounded-2xl px-3 py-2 max-w-[80%] text-sm shadow
+  `;
 
-  onChildAdded(chatRef, snapshot => {
+  const verifiedBadge = isVerified
+    ? `<img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
+             alt="verified" class="w-3 h-3 ml-1 inline-block align-middle" />`
+    : "";
+
+  bubble.innerHTML = `
+    <div class='flex items-end gap-2 flex-wrap justify-end'>
+      <span class='break-words leading-tight text-white'>${text}</span>
+      <span class='flex items-center gap-1 text-[11px] text-gray-300 whitespace-nowrap'>
+        ${time}
+        ${isYou ? "<i class='ri-check-double-line text-gray-400 text-[13px]'></i>" : ""}
+      </span>
+    </div>
+    ${!isYou ? `<div class='text-[11px] text-gray-400 mt-1 ml-1 flex items-center'>${sender}${verifiedBadge}</div>` : ""}
+  `;
+
+  wrapper.appendChild(bubble);
+  chatArea.appendChild(wrapper);
+}
+
+onChildAdded(chatRef, snapshot => {
   const m = snapshot.val();
   renderMessage(m.text, m.sender, m.time, m.email);
 
-  const distanceFromBottom = chatArea.scrollHeight - (chatArea.scrollTop + chatArea.clientHeight);
-  const isNearBottom = distanceFromBottom < 100;
-
-  requestAnimationFrame(() => {
-    if (isNearBottom) smoothScrollToBottom();
-  });
+  // Tunggu DOM selesai render sebelum scroll
+  setTimeout(() => {
+    smoothScrollToBottom(true);
+  }, 100);
 });
 
-// 🔹 Scroll halus ke bawah (seperti animasi chat WhatsApp)
-function smoothScrollToBottom() {
-  const start = chatArea.scrollTop;
-  const end = chatArea.scrollHeight;
-  const distance = end - start;
-  const duration = 400; // durasi animasi dalam ms
-  const startTime = performance.now();
+// 🔹 Fungsi scroll halus yang selalu bekerja
+function smoothScrollToBottom(force = false) {
+  const distanceFromBottom = chatArea.scrollHeight - (chatArea.scrollTop + chatArea.clientHeight);
+  const isNearBottom = distanceFromBottom < 150;
 
-  function animateScroll(currentTime) {
-    const elapsed = currentTime - startTime;
-    const progress = Math.min(elapsed / duration, 1); // 0 → 1
-    chatArea.scrollTop = start + distance * easeOutCubic(progress);
+  // Hanya scroll otomatis kalau user di bawah atau dipaksa (saat kirim pesan sendiri)
+  if (isNearBottom || force) {
+    const target = chatArea.scrollHeight;
+    const start = chatArea.scrollTop;
+    const distance = target - start;
+    const duration = 500; // kecepatan animasi (ms)
+    const startTime = performance.now();
 
-    if (progress < 1) {
-      requestAnimationFrame(animateScroll);
+    function easeOutQuad(t) {
+      return t * (2 - t);
     }
-  }
 
-  // Fungsi easing untuk efek lembut
-  function easeOutCubic(t) {
-    return 1 - Math.pow(1 - t, 3);
-  }
+    function animateScroll(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeOutQuad(progress);
+      chatArea.scrollTop = start + distance * eased;
 
-  requestAnimationFrame(animateScroll);
+      if (progress < 1) {
+        requestAnimationFrame(animateScroll);
+      }
+    }
+
+    requestAnimationFrame(animateScroll);
+  }
 }
-
-  chatArea.addEventListener("scroll", checkScrollPosition);
-
-  popup.addEventListener("click", () => {
-    chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: "smooth" });
-    newMsgCount = 0;
-    popup.classList.add("hidden");
-  });
 
   // --- Kirim pesan ---
   sendBtn.addEventListener("click", () => {
