@@ -17,6 +17,12 @@
       flex-direction: column;
       height: calc(var(--vh, 1vh) * 100);
     }
+    
+    #chatArea {
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  transition: scroll 0.3s ease-out;
+}
     main {
   flex: 1;
   overflow-y: auto;
@@ -203,42 +209,30 @@ onChildAdded(chatRef, snapshot => {
   const m = snapshot.val();
   renderMessage(m.text, m.sender, m.time, m.email);
 
-  // Tunggu DOM selesai render sebelum scroll
-  setTimeout(() => {
-    smoothScrollToBottom(true);
-  }, 100);
+  // Gunakan MutationObserver supaya scroll baru dijalankan setelah DOM siap
+  const observer = new MutationObserver(() => {
+    observer.disconnect();
+    smoothScrollToBottom();
+  });
+  observer.observe(chatArea, { childList: true });
 });
 
-// 🔹 Fungsi scroll halus yang selalu bekerja
-function smoothScrollToBottom(force = false) {
-  const distanceFromBottom = chatArea.scrollHeight - (chatArea.scrollTop + chatArea.clientHeight);
-  const isNearBottom = distanceFromBottom < 150;
+function smoothScrollToBottom() {
+  const start = chatArea.scrollTop;
+  const end = chatArea.scrollHeight;
+  const distance = end - start;
+  const duration = 500; // ms
+  const startTime = performance.now();
 
-  // Hanya scroll otomatis kalau user di bawah atau dipaksa (saat kirim pesan sendiri)
-  if (isNearBottom || force) {
-    const target = chatArea.scrollHeight;
-    const start = chatArea.scrollTop;
-    const distance = target - start;
-    const duration = 500; // kecepatan animasi (ms)
-    const startTime = performance.now();
-
-    function easeOutQuad(t) {
-      return t * (2 - t);
-    }
-
-    function animateScroll(currentTime) {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = easeOutQuad(progress);
-      chatArea.scrollTop = start + distance * eased;
-
-      if (progress < 1) {
-        requestAnimationFrame(animateScroll);
-      }
-    }
-
-    requestAnimationFrame(animateScroll);
+  function animateScroll(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+    chatArea.scrollTop = start + distance * ease;
+    if (progress < 1) requestAnimationFrame(animateScroll);
   }
+
+  requestAnimationFrame(animateScroll);
 }
 
   // --- Kirim pesan ---
