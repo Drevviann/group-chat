@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -203,19 +203,42 @@
   }
 
   onChildAdded(chatRef, snapshot => {
-    const m = snapshot.val();
-    renderMessage(m.text, m.sender, m.time, m.email);
+  const m = snapshot.val();
+  renderMessage(m.text, m.sender, m.time, m.email);
 
-    requestAnimationFrame(() => {
-      if (isNearBottom) {
-        chatArea.scrollTop = chatArea.scrollHeight;
-      } else {
-        newMsgCount++;
-        popup.textContent = `${newMsgCount} pesan baru`;
-        popup.classList.remove("hidden");
-      }
-    });
+  const distanceFromBottom = chatArea.scrollHeight - (chatArea.scrollTop + chatArea.clientHeight);
+  const isNearBottom = distanceFromBottom < 100;
+
+  requestAnimationFrame(() => {
+    if (isNearBottom) smoothScrollToBottom();
   });
+});
+
+// 🔹 Scroll halus ke bawah (seperti animasi chat WhatsApp)
+function smoothScrollToBottom() {
+  const start = chatArea.scrollTop;
+  const end = chatArea.scrollHeight;
+  const distance = end - start;
+  const duration = 400; // durasi animasi dalam ms
+  const startTime = performance.now();
+
+  function animateScroll(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1); // 0 → 1
+    chatArea.scrollTop = start + distance * easeOutCubic(progress);
+
+    if (progress < 1) {
+      requestAnimationFrame(animateScroll);
+    }
+  }
+
+  // Fungsi easing untuk efek lembut
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  requestAnimationFrame(animateScroll);
+}
 
   chatArea.addEventListener("scroll", checkScrollPosition);
 
