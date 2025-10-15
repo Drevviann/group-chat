@@ -104,10 +104,8 @@
        class="hidden absolute bottom-16 left-2 bg-[#1f2c34] p-3 rounded-2xl shadow-xl grid grid-cols-4 sm:grid-cols-5 gap-2 border border-gray-700 z-50">
     <!-- contoh gambar sticker -->
     <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
-    <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
-    <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
-    <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
-    <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+    <img src="https://github.com/Drevviann/group-chat/blob/main/IMG-20251015-WA0184.jpg?raw=true" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTVQIrmQ_akXfwqaAe22CndoHMze4X5Ia_RpYb-7i3YoOd_Nqbq68mZaWBT&s=10" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
   </div>
 </footer>
 
@@ -162,7 +160,7 @@
       const displayName = shortName(username);
       userArea.innerHTML = `
         <div class="flex items-center gap-2">
-          <img src="${user.photoURL || "https://i.imgur.com/0y0y0y0.png"}"
+          <img src="${user.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10"}"
                class="w-8 h-8 rounded-full border border-gray-600">
           <span id="displayUsername" class="font-medium">${displayName}${verifiedBadge}</span>
           <i id="editName" class="ri-pencil-line text-gray-300 hover:text-white text-lg cursor-pointer"></i>
@@ -202,7 +200,13 @@
 function renderMessage(text, sender, time, email = null, photoURL = null) {
   const currentUser = auth.currentUser;
   const isYou = currentUser && email === currentUser.email;
-  const isVerified = email === "drevviann@gmail.com";
+
+  // 🔹 daftar akun terverifikasi
+  const verifiedUsers = [
+    "drevviann@gmail.com",
+    "ridhofadillah1010@gmail.com"
+  ];
+  const isVerified = verifiedUsers.includes(email);
 
   // wrapper bubble
   const wrapper = document.createElement("div");
@@ -216,6 +220,7 @@ function renderMessage(text, sender, time, email = null, photoURL = null) {
     flex flex-col items-start
   `;
 
+  // 🔹 centang biru jika terverifikasi
   const verifiedBadge = isVerified
     ? `<img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
              alt="verified" class="w-3 h-3 ml-1 inline-block align-middle" />`
@@ -223,15 +228,15 @@ function renderMessage(text, sender, time, email = null, photoURL = null) {
 
   // 🔹 Baris atas: foto profil di kiri nama + waktu di kanan
   const headerHTML = `
-    <div class="flex items-center w-full mb-1">
-      <img src="${photoURL || 'https://i.imgur.com/NJ0pK5z.png'}"
-           alt="profile"
-           class="w-6 h-6 rounded-full object-cover mr-2" />
-      <span class="font-medium text-white">${sender}</span>
-      ${verifiedBadge}
-      <span class="text-[11px] text-gray-400 ml-2">${time}</span>
-    </div>
-  `;
+  <div class="flex items-center w-full mb-1">
+    <img src="${photoURL || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10'}"
+         alt="profile"
+         class="w-6 h-6 rounded-full object-cover mr-2" />
+    <span class="font-medium ${isVerified ? "text-red-500" : "text-white"}">${sender}</span>
+    ${verifiedBadge}
+    <span class="text-[11px] text-gray-400 ml-2">${time}</span>
+  </div>
+`;
 
   // 🔹 Deteksi pesan teks atau sticker
   const contentHTML = text.includes("<img")
@@ -289,7 +294,7 @@ function smoothScrollToBottom(element) {
   sender: username,
   time,
   email: currentUser.email,
-  photoURL: currentUser.photoURL || "https://i.imgur.com/NJ0pK5z.png"
+  photoURL: currentUser.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10"
 })
       .then(() => {
         input.value = "";
@@ -326,7 +331,7 @@ stickerPanel.querySelectorAll("img").forEach(img => {
   sender: username,
   time,
   email: currentUser.email,
-  photoURL: currentUser.photoURL || "https://i.imgur.com/NJ0pK5z.png"
+  photoURL: currentUser.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10"
 });
 
     stickerPanel.classList.add("hidden");
