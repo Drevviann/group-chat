@@ -8,6 +8,32 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
 
   <style>
+  
+/* Gaya untuk pesan yang dihapus */
+.deleted-message {
+  color: #9ca3af; /* abu-abu netral */
+  font-style: italic;
+}
+
+#customPlaceholder {
+  font-style: italic;
+  color: #9ca3af;
+  z-index: 10;
+}
+
+/* Placeholder jadi miring dan abu-abu saat disabled */
+input[disabled]::placeholder {
+  font-style: italic;
+  color: #9ca3af; /* abu-abu lembut */
+}
+
+/* warna background input nonaktif */
+input[disabled] {
+  background-color: transparent;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
     :root { --vh: 100%; }
     body {
       background-color: #0b141a;
@@ -21,6 +47,19 @@
       overflow-y: auto;
     }
     
+    
+.verified-badge {
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: -2.5px; /* sedikit naik supaya sejajar sempurna */
+}
+
+.verified-badge-style-two {
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: -2px; /* sedikit naik supaya sejajar sempurna */
+}
+  
 #chatArea {
   overflow-y: auto;
   scroll-behavior: smooth;
@@ -28,15 +67,27 @@
   height: 100%;
   width: 100%;
   will-change: scroll-position;
+  padding-bottom: 100px !important;
 }
     main {
   flex: 1;
   overflow-y: auto;
   scroll-behavior: smooth;
 }
-    footer { position: sticky; bottom: 0; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.1); border-radius: 9999px; }
+footer {
+  position: fixed !important;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 900px; /* agar tetap proporsional di tengah */
+  z-index: 50;
+}
+
+#loginOverlay {
+  backdrop-filter: blur(2px);
+  font-weight: 500;
+}
   </style>
 </head>
 <body class="min-h-screen flex flex-col" id="body">
@@ -45,23 +96,35 @@
     <header class="sticky top-0 z-20 flex justify-between items-center bg-[#202c33] px-4 py-3 shadow-md">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden">
-        <img src="https://preview.redd.it/i-think-all-3-of-cerydras-design-animations-and-model-are-v0-z7t7a1va8fff1.gif?width=500&auto=webp&s=b019ee031e91d98bf8842e3821fac11679941a99"
-             alt="avatar" class="w-full h-full object-cover">
+        <img src="
+        https://media.tenor.com/bZId7Fns3DoAAAAM/cerydra-hsr.gif"
+             alt="pp saluran" class="w-full h-full object-cover">
       </div>
       <div class="flex flex-col text-sm sm:text-base">
         <span class="font-semibold flex items-center gap-1 text-white">
-          Cerydra
+
+            
+          PTIKH
+         
+
           <img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
                alt="verified"
                class="w-3 h-3 sm:w-4 sm:h-4 object-contain" />
+               
+                                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTDefNPTohV_QFseYy5yL2AieR37LStZeKU8vaOU1LBQ&s=10"
+               alt="badge"
+               class="w-3 h-3 sm:w-4 sm:h-4 object-contain rounded-full" />
+         
         </span>
-        <span class="text-xs sm:text-sm text-gray-400">Cerydra Community</span>
+        <span class="text-xs sm:text-sm text-gray-400">PT Indah Karya Hoyo: IKH</span>
       </div>
     </div>
 
     <!-- User/Login Area -->
     <div id="userArea" class="text-sm sm:text-base">
-      <button id="loginBtn" class="bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-lg transition text-white"><i class="ri-google-fill text-lg"></i></button>
+      <button id="loginBtn" class="bg-transparent border border-white px-2 py-1 rounded-lg transition text-white">                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png"
+               alt="verified"
+               class="w-6 h-6 sm:w-5 sm:h-5 object-contain" /></button>
     </div>
   </header>
 
@@ -84,6 +147,13 @@
           class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#2a3942] hover:bg-[#3b4a54] flex items-center justify-center text-white transition">
     <i class="ri-add-line text-xl"></i>
   </button>
+  
+  <!-- Tombol Admin Panel -->
+<button id="adminPanelBtn"
+        class="hidden w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#2a3942] hover:bg-[#3b4a54] flex items-center justify-center text-white transition">
+  <i class="ri-settings-3-line text-xl"></i>
+</button>
+
 
   <!-- Input -->
   <div class="flex items-center flex-1 bg-[#2a3942] rounded-full px-3 sm:px-4 py-2 sm:py-3">
@@ -91,7 +161,11 @@
            type="text"
            placeholder="Ketik pesan..."
            class="flex-1 bg-transparent text-sm sm:text-base text-white outline-none placeholder-gray-400" />
+           
   </div>
+  <div id="customPlaceholder" class="absolute left-4 bottom-3 text-gray-400 italic flex items-center pointer-events-none hidden">
+  <i class="ri-forbid-2-line text-gray-400 text-base mr-1"></i> Login terlebih dahulu untuk mengirim pesan!
+</div>
 
   <!-- Tombol kirim -->
   <button id="sendBtn"
@@ -105,15 +179,39 @@
     <!-- contoh gambar sticker -->
     <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
     <img src="https://github.com/Drevviann/group-chat/blob/main/IMG-20251015-WA0184.jpg?raw=true" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTVQIrmQ_akXfwqaAe22CndoHMze4X5Ia_RpYb-7i3YoOd_Nqbq68mZaWBT&s=10" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+        <img src="https://media2.giphy.com/media/v1.Y2lkPTZjMDliOTUybW04Z2Zjdm1qd245MXBrcDQ0OHljbGRzbzZlaHF5c3RsZGVua3A4aSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Q0VvDkS4j4Ia2RjAOS/giphy.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
   </div>
 </footer>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+<!-- Overlay untuk user yang belum login -->
+<div id="loginOverlay"
+     class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 flex items-center justify-center text-gray-300 text-sm sm:text-base py-4 z-40 hidden">
+  Login terlebih dahulu untuk mengirim pesan!
+</div>
 
+<script type="module">
+  import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+import {
+  getDatabase,
+  ref,
+  set,
+  push,
+  update,
+  onChildAdded,
+  onChildChanged,
+  onValue
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const firebaseConfig = {
     apiKey: "AIzaSyBCz40oTe3y1bcpfxZY8wl4ZPf-Jm-Yn08",
     authDomain: "group-chat-5eb24.firebaseapp.com",
@@ -141,43 +239,72 @@
   let newMsgCount = 0;
   let isNearBottom = true;
 
-  // --- Nama user maksimum 4 huruf ---
+  // --- Nama user maksimum 3 huruf ---
   function shortName(name) {
-    return name.length > 4 ? name.substring(0, 4).toUpperCase() + "..." : name.toUpperCase();
+    return name.length > 3 ? name.substring(0, 3).toUpperCase() + "..." : name.toUpperCase();
   }
 
-  // --- Login & UI ---
-  function updateUserUI(user) {
-    if (user) {
-      isLoggedIn = true;
-      username = user.displayName || username;
-      localStorage.setItem("username", username);
-      const isVerified = user.email === "drevviann@gmail.com";
-      const verifiedBadge = isVerified
-        ? `<img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
-                alt="verified" class="w-3.5 h-3.5 ml-1 inline-block align-middle" />`
-        : "";
-      const displayName = shortName(username);
-      userArea.innerHTML = `
-        <div class="flex items-center gap-2">
-          <img src="${user.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10"}"
-               class="w-8 h-8 rounded-full border border-gray-600">
-          <span id="displayUsername" class="font-medium">${displayName}${verifiedBadge}</span>
-          <i id="editName" class="ri-pencil-line text-gray-300 hover:text-white text-lg cursor-pointer"></i>
-          <i id="logoutBtn" class="ri-logout-box-r-line text-red-400 hover:text-red-500 text-lg cursor-pointer"></i>
-        </div>`;
-      document.getElementById("editName").addEventListener("click", editUsername);
-      document.getElementById("logoutBtn").addEventListener("click", () => signOut(auth));
-    } else {
-      isLoggedIn = false;
-      userArea.innerHTML = `
-        <button id="loginBtn"
-                class="bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-lg transition text-white flex items-center gap-2">
-          <i class="ri-google-fill text-lg"></i>
-        </button>`;
-      document.getElementById("loginBtn").addEventListener("click", handleLogin);
-    }
+function updateUserUI(user) {
+  if (user) {
+    isLoggedIn = true;
+    username = user.displayName || username;
+    localStorage.setItem("username", username);
+
+    // ✅ Cek apakah user adalah admin terverifikasi
+    const verifiedAdmins = [
+      "drevviann@gmail.com",
+      "ridhofadillah1010@gmail.com"
+    ];
+    const isVerified = verifiedAdmins.includes(user.email);
+
+    // ✅ Jika admin, beri centang biru di navbar
+    const verifiedBadge = isVerified
+  ? `<img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
+          alt="verified"
+          class="verified-badge w-3 h-3 ml-1" />`
+  : "";
+
+    const displayName = shortName(username);
+    userArea.innerHTML = `
+      <div class="flex items-center gap-2">
+        <img src="${user.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10"}"
+             class="w-8 h-8 rounded-full border border-gray-600">
+        <span id="displayUsername" class="font-medium ${isVerified ? 'text-red-500' : 'text-white'}">${displayName}${verifiedBadge}</span>
+        <i id="editName" class="ri-pencil-line text-gray-300 hover:text-white text-lg cursor-pointer"></i>
+        <i id="logoutBtn" class="ri-logout-box-r-line text-red-400 hover:text-red-500 text-lg cursor-pointer"></i>
+      </div>
+    `;
+
+    document.getElementById("editName").addEventListener("click", editUsername);
+    document.getElementById("logoutBtn").addEventListener("click", () => signOut(auth));
+  } else {
+    isLoggedIn = false;
+    userArea.innerHTML = `
+      <button id="loginBtn"
+              class="bg-transparent border border-white px-2 py-1 rounded-lg transition text-white">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png"
+             alt="google login"
+             class="w-6 h-6 sm:w-5 sm:h-5 object-contain" />
+      </button>`;
+    document.getElementById("loginBtn").addEventListener("click", handleLogin);
+    
   }
+  const input = document.getElementById("messageInput");
+  const sendBtn = document.getElementById("sendBtn");
+
+  if (user) {
+    // ✅ User sudah login
+    input.disabled = false;
+    input.placeholder = "Kirim pesan...";
+    sendBtn.disabled = false;
+    sendBtn.classList.remove("opacity-50", "cursor-not-allowed");
+} else {
+    input.disabled = true;
+    input.placeholder = "!disabled! Login terlebih dahulu!";
+    sendBtn.disabled = true;
+    sendBtn.classList.add("opacity-50", "cursor-not-allowed");
+  }
+}
 
   function handleLogin() {
     signInWithPopup(auth, provider)
@@ -197,7 +324,8 @@
 
   onAuthStateChanged(auth, user => updateUserUI(user));
 
-function renderMessage(text, sender, time, email = null, photoURL = null) {
+function renderMessage(text, sender, time, email = null, photoURL = null, messageId = null) {    // Potong nama jika lebih dari 12 karakter
+  const displayName = sender.length > 12 ? sender.substring(0, 12) + "..." : sender;
   const currentUser = auth.currentUser;
   const isYou = currentUser && email === currentUser.email;
 
@@ -218,21 +346,40 @@ function renderMessage(text, sender, time, email = null, photoURL = null) {
     ${isYou ? "bg-[#005c4b]" : "bg-[#1f1f1f]"}
     text-gray-200 rounded-2xl px-3 py-2 max-w-[80%] text-sm shadow
     flex flex-col items-start
-  `;
+  `
+  bubble.dataset.id = messageId;
+  
+  // 🧩 Tekan-tahan untuk hapus pesan sendiri
+  let pressTimer;
+  if (auth.currentUser && auth.currentUser.email === email && !text.includes("Pesan ini sudah dihapus")) { 
+    const startPress = () => {
+      pressTimer = setTimeout(() => {
+        showDeletePopup(messageId);
+      }, 700);
+    };
+    const endPress = () => clearTimeout(pressTimer);
+
+    bubble.addEventListener("mousedown", startPress);
+    bubble.addEventListener("mouseup", endPress);
+    bubble.addEventListener("mouseleave", endPress);
+    bubble.addEventListener("touchstart", startPress);
+    bubble.addEventListener("touchend", endPress);
+  }
+  
 
   // 🔹 centang biru jika terverifikasi
   const verifiedBadge = isVerified
     ? `<img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
-             alt="verified" class="w-3 h-3 ml-1 inline-block align-middle" />`
+             alt="verified" class="w-3 h-3 ml-1 inline-block align-middle verified-badge-style-two" />`
     : "";
 
   // 🔹 Baris atas: foto profil di kiri nama + waktu di kanan
   const headerHTML = `
   <div class="flex items-center w-full mb-1">
-    <img src="${photoURL || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10'}"
+    <img src="${photoURL || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRkjFpo1MyqtOZpX9eN2FpREP7noUsAvV_IDw&usqp=CAU'}"
          alt="profile"
          class="w-6 h-6 rounded-full object-cover mr-2" />
-    <span class="font-medium ${isVerified ? "text-red-500" : "text-white"}">${sender}</span>
+<span class="font-medium ${isVerified ? "text-red-500" : "text-white"}">${displayName}</span>
     ${verifiedBadge}
     <span class="text-[11px] text-gray-400 ml-2">${time}</span>
   </div>
@@ -240,22 +387,71 @@ function renderMessage(text, sender, time, email = null, photoURL = null) {
 
   // 🔹 Deteksi pesan teks atau sticker
   const contentHTML = text.includes("<img")
-    ? `<div class="mt-1 w-full flex justify-center">${text}</div>`
-    : `<div class="break-words leading-tight text-left text-white w-full">${text}</div>`;
+  ? `<div class="mt-1 w-full flex justify-center message-body">${text}</div>`
+  : `<div class="break-words leading-tight text-left text-white w-full message-body">${text}</div>`;
 
   bubble.innerHTML = headerHTML + contentHTML;
   wrapper.appendChild(bubble);
   chatArea.appendChild(wrapper);
 }
 
+function showDeletePopup(messageId) {
+  const popup = document.createElement("div");
+  popup.className = "fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50";
+  popup.innerHTML = `
+    <div class="bg-[#1f2c34] text-white p-4 rounded-2xl w-72 shadow-lg border border-gray-700">
+      <p class="mb-4">Hapus pesan ini?</p>
+      <button id="deleteForAll" class="w-full bg-transparent border border-red-700 rounded-lg py-2 mb-2">
+        Hapus untuk semua orang
+      </button>
+      <button id="cancelDelete" class="w-full bg-transparent border border-white rounded-lg py-2">
+        Batal
+      </button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+
+  // tombol hapus
+  document.getElementById("deleteForAll").addEventListener("click", async () => {
+    await update(ref(db, "cerydra_group/" + messageId), {
+  text: "<i class='ri-forbid-2-line text-gray-400 text-base mr-1 align-middle'></i> <span class='deleted-message'>Pesan ini telah dihapus</span>"
+});
+    document.body.removeChild(popup);
+  });
+
+  document.getElementById("cancelDelete").addEventListener("click", () => {
+    document.body.removeChild(popup);
+  });
+}
+
+// 🔥 Saat ada pesan baru
 onChildAdded(chatRef, snapshot => {
   const m = snapshot.val();
-  renderMessage(m.text, m.sender, m.time, m.email);
+  if (!m) return;
+  renderMessage(m.text, m.sender, m.time, m.email, m.photoURL, snapshot.key);
+});
 
-  // Jalankan scroll setelah DOM update
-  requestAnimationFrame(() => {
-    smoothScrollToBottom(chatArea);
-  });
+// 🔥 Saat pesan diubah (misalnya dihapus)
+onChildChanged(chatRef, snapshot => {
+  const m = snapshot.val();
+  const bubble = document.querySelector(`[data-id='${snapshot.key}']`);
+  if (!bubble || !m) return;
+
+  // cari elemen teks di dalam bubble
+  const messageBody = bubble.querySelector(".message-body");
+  if (messageBody) {
+    messageBody.innerHTML = m.text;
+  } else {
+    // kalau struktur berbeda, fallback: ganti seluruh isi
+    bubble.innerHTML = `
+      <div class="message-header flex items-center gap-2">
+        <img src="${m.photoURL || "https://cdn-icons-png.flaticon.com/512/4712/4712035.png"}" class="w-6 h-6 rounded-full">
+        <span class="font-medium">${m.sender}</span>
+        <span class="text-xs text-gray-400 ml-2">${m.time}</span>
+      </div>
+      <div class="message-body mt-1">${m.text}</div>
+    `;
+  }
 });
 
 // Animasi scroll halus
@@ -338,6 +534,8 @@ stickerPanel.querySelectorAll("img").forEach(img => {
     chatArea.scrollTop = chatArea.scrollHeight;
   });
 });
+
+
 </script>
 </body>
 </html>
