@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cerydra Community Chat</title>
+  <title>Komunitas Cerydra</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
 
@@ -70,9 +70,8 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBCz40oTe3y1bcpfxZY8wl4ZPf-Jm-Yn08",
@@ -204,21 +203,19 @@
 
 
 
-// Kosongkan dulu area chat saat awal
+import { onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
 chatArea.innerHTML = "";
 
-// Dengarkan pesan baru secara realtime
-onChildAdded(chatRef, snapshot => {
+// 🔥 Dengarkan setiap pesan baru
+onChildAdded(chatRef, (snapshot) => {
   const m = snapshot.val();
   renderMessage(m.text, m.sender, m.time, m.email);
 
-  // 🔽 Scroll otomatis setiap kali pesan baru muncul
-  setTimeout(() => {
-    chatArea.scrollTo({
-      top: chatArea.scrollHeight,
-      behavior: "smooth"
-    });
-  }, 100);
+  // 🔽 Pastikan auto-scroll berfungsi di semua browser
+  requestAnimationFrame(() => {
+    chatArea.scrollTop = chatArea.scrollHeight;
+  });
 });
 
   sendBtn.addEventListener('click', () => {
