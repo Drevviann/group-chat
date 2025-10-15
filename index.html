@@ -109,15 +109,23 @@
               alt="verified" class="w-3.5 h-3.5 ml-1 inline-block align-middle" />`
       : "";
 
+    // ✂️ Potong nama jika bukan verified dan lebih dari 3 karakter
+    const displayName = isVerified
+      ? username
+      : username.length > 3
+        ? username.substring(0, 3) + "..."
+        : username;
+
     userArea.innerHTML = `
       <div class="flex items-center gap-2">
         <img src="${user.photoURL || 'https://i.imgur.com/0y0y0y0.png'}"
              class="w-8 h-8 rounded-full border border-gray-600">
-        <span id="displayUsername" class="font-medium">${username}${verifiedBadge}</span>
+        <span id="displayUsername" class="font-medium">${displayName}${verifiedBadge}</span>
         <i id="editName" class="ri-pencil-line text-gray-300 hover:text-white text-lg cursor-pointer"></i>
         <i id="logoutBtn" class="ri-logout-box-r-line text-red-400 hover:text-red-500 text-lg cursor-pointer"></i>
       </div>
     `;
+
     document.getElementById('editName').addEventListener('click', editUsername);
     document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
   } else {
@@ -205,11 +213,13 @@
     renderMessage(m.text, m.sender, m.time, m.email);
   });
 
-  // 🔽 Setelah semua pesan dirender, scroll otomatis ke bawah
-  chatArea.scrollTo({
-    top: chatArea.scrollHeight,
-    behavior: "smooth"
-  });
+  // Scroll ke bawah setiap kali pesan baru datang
+  setTimeout(() => {
+    chatArea.scrollTo({
+      top: chatArea.scrollHeight,
+      behavior: "smooth"
+    });
+  }, 300);
 });
 
     sendBtn.addEventListener('click', () => {
@@ -234,13 +244,16 @@
       input.value = '';
       console.log('Message sent!');
 
-      // 🔽 Auto-scroll halus setelah pesan dikirim
+      // 🧩 Fokuskan kembali ke input biar keyboard tetap terbuka
+      input.focus();
+
+      // 🔽 Scroll otomatis ke bawah setelah pesan baru muncul
       setTimeout(() => {
         chatArea.scrollTo({
           top: chatArea.scrollHeight,
           behavior: "smooth"
         });
-      }, 300);
+      }, 200);
     })
     .catch(err => console.error('Send error:', err));
 });
