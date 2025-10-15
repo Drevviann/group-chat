@@ -207,20 +207,28 @@
 }
 
     onValue(chatRef, snapshot => {
-    const wasFocused = document.activeElement === input;
-const currentValue = input.value;
-  chatArea.innerHTML = "";
-  snapshot.forEach(child => {
-    const m = child.val();
-    renderMessage(m.text, m.sender, m.time, m.email);
-    
-if (wasFocused) {
-  input.focus();
-  input.value = currentValue;
-}
-  });
-  
-  
+  const messages = [];
+  snapshot.forEach(child => messages.push(child.val()));
+
+  // Cek jumlah pesan yang sudah ada di DOM
+  const currentMessages = chatArea.querySelectorAll('.chat-bubble').length;
+
+  // Tambahkan hanya pesan baru (tanpa reset DOM)
+  if (messages.length > currentMessages) {
+    for (let i = currentMessages; i < messages.length; i++) {
+      const m = messages[i];
+      renderMessage(m.text, m.sender, m.time, m.email);
+    }
+
+    // Scroll ke bawah hanya untuk pesan baru
+    setTimeout(() => {
+      chatArea.scrollTo({
+        top: chatArea.scrollHeight,
+        behavior: "smooth"
+      });
+    }, 100);
+  }
+});
 
 
   // Scroll ke bawah setiap kali pesan baru datang
@@ -251,24 +259,19 @@ if (wasFocused) {
     email: currentUser.email
   })
     .then(() => {
-      // Jangan hilangkan fokus
-      const wasFocused = document.activeElement === input;
-
+      // Jangan hilangkan fokus → keyboard tetap terbuka
+      const pos = input.selectionStart || 0;
       input.value = '';
-      console.log('Message sent!');
+      input.setSelectionRange(pos, pos);
+      input.focus();
 
-      // Biarkan keyboard tetap terbuka
-      if (wasFocused) {
-        input.focus();
-      }
-
-      // Scroll otomatis ke bawah
+      // Scroll ke bawah sedikit setelah pesan muncul
       setTimeout(() => {
         chatArea.scrollTo({
           top: chatArea.scrollHeight,
           behavior: "smooth"
         });
-      }, 100);
+      }, 150);
     })
     .catch(err => console.error('Send error:', err));
 });
