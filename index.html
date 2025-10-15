@@ -100,10 +100,23 @@
   const chatArea = document.getElementById('chatArea');
   const userArea = document.getElementById('userArea');
 
+  // 🔔 Tambahkan popup ke body (otomatis kalau belum ada)
+  if (!document.getElementById('newMsgPopup')) {
+    const popupEl = document.createElement('div');
+    popupEl.id = 'newMsgPopup';
+    popupEl.className = "hidden fixed bottom-20 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full text-sm shadow-lg cursor-pointer z-50 transition";
+    popupEl.textContent = "1 pesan baru";
+    document.body.appendChild(popupEl);
+  }
+
+  const popup = document.getElementById('newMsgPopup');
+
   let username = localStorage.getItem('username') || "Guest_" + Math.floor(Math.random() * 1000);
   let isLoggedIn = false;
+  let newMsgCount = 0;
+  let isNearBottom = true;
 
-  // 🔹 Fungsi untuk memotong nama jadi 4 karakter
+  // 🔹 Potong nama jadi 4 huruf
   function shortName(name) {
     return name.length > 4 ? name.substring(0, 4).toUpperCase() + "..." : name.toUpperCase();
   }
@@ -120,9 +133,7 @@
                 alt="verified" class="w-3.5 h-3.5 ml-1 inline-block align-middle" />`
         : "";
 
-      // 🔹 tampilkan hanya 4 huruf pertama
       const displayName = shortName(username);
-
       userArea.innerHTML = `
         <div class="flex items-center gap-2">
           <img src="${user.photoURL || 'https://i.imgur.com/0y0y0y0.png'}"
@@ -132,7 +143,6 @@
           <i id="logoutBtn" class="ri-logout-box-r-line text-red-400 hover:text-red-500 text-lg cursor-pointer"></i>
         </div>
       `;
-
       document.getElementById('editName').addEventListener('click', editUsername);
       document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
     } else {
@@ -167,120 +177,78 @@
 
   function renderMessage(text, sender, time, email = null) {
     const currentUser = auth.currentUser;
-    const isYouLoggedIn = currentUser && email === currentUser.email;
-    const isYouGuest = !currentUser && sender === username;
-    const isVerifiedSender = email === "drevviann@gmail.com";
-
-    const bubbleColor = isYouLoggedIn
-      ? "bg-[#005c4b]"
-      : isYouGuest
-        ? "bg-[#1f1f1f]"
-        : "bg-[#1f1f1f]";
+    const isYou = currentUser && email === currentUser.email;
+    const isVerified = email === "drevviann@gmail.com";
 
     const bubble = document.createElement('div');
     bubble.className = `
-      ${isYouLoggedIn ? "self-end" : "self-start"}
-      ${bubbleColor}
+      ${isYou ? "self-end bg-[#005c4b]" : "self-start bg-[#1f1f1f]"}
       text-gray-200 rounded-2xl px-3 py-2 max-w-[80%] text-sm shadow
     `;
-
-    const verifiedBadge = isVerifiedSender
+    const verifiedBadge = isVerified
       ? `<img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
                alt="verified" class="w-3 h-3 ml-1 inline-block align-middle" />`
       : "";
-
     bubble.innerHTML = `
       <div class='flex items-end gap-2 flex-wrap justify-end'>
         <span class='break-words leading-tight text-white'>${text}</span>
         <span class='flex items-center gap-1 text-[11px] text-gray-300 whitespace-nowrap'>
           ${time}
-          ${isYouLoggedIn ? "<i class='ri-check-double-line text-gray-400 text-[13px]'></i>" : ""}
+          ${isYou ? "<i class='ri-check-double-line text-gray-400 text-[13px]'></i>" : ""}
         </span>
       </div>
-      ${!isYouLoggedIn ? `
-        <div class='text-[11px] text-gray-400 mt-1 ml-1 flex items-center'>
-          ${sender}${verifiedBadge}
-        </div>
-      ` : ""}
+      ${!isYou ? `<div class='text-[11px] text-gray-400 mt-1 ml-1 flex items-center'>${sender}${verifiedBadge}</div>` : ""}
     `;
-
     chatArea.appendChild(bubble);
   }
 
-chatArea.innerHTML = "";
-const popup = document.getElementById("newMsgPopup");
+  // 🔹 Cek posisi scroll
+  function checkScrollPosition() {
+    const distance = chatArea.scrollHeight - (chatArea.scrollTop + chatArea.clientHeight);
+    isNearBottom = distance < 100;
+    if (isNearBottom && newMsgCount > 0) {
+      newMsgCount = 0;
+      popup.classList.add("hidden");
+    }
+  }
 
-let isNearBottom = true;
-let newMsgCount = 0;
+  // 🔹 Dengarkan pesan baru dari Firebase
+  chatArea.innerHTML = "";
+  onChildAdded(chatRef, (snapshot) => {
+    const m = snapshot.val();
+    renderMessage(m.text, m.sender, m.time, m.email);
 
-// 🔹 Cek posisi scroll (apakah user sedang di bawah?)
-function checkScrollPosition() {
-  const distanceFromBottom = chatArea.scrollHeight - (chatArea.scrollTop + chatArea.clientHeight);
-  isNearBottom = distanceFromBottom < 100; // kalau jarak <100px dianggap di bawah
+    requestAnimationFrame(() => {
+      if (isNearBottom) {
+        chatArea.scrollTop = chatArea.scrollHeight;
+      } else {
+        newMsgCount++;
+        popup.textContent = `${newMsgCount} pesan baru`;
+        popup.classList.remove("hidden");
+      }
+    });
+  });
 
-  // Jika user sudah scroll ke bawah, sembunyikan popup dan reset counter
-  if (isNearBottom && newMsgCount > 0) {
+  chatArea.addEventListener("scroll", checkScrollPosition);
+
+  popup.addEventListener("click", () => {
+    chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: "smooth" });
     newMsgCount = 0;
     popup.classList.add("hidden");
-  }
-}
-
-// 🔹 Dengarkan pesan baru
-onChildAdded(chatRef, (snapshot) => {
-  const m = snapshot.val();
-  renderMessage(m.text, m.sender, m.time, m.email);
-
-  requestAnimationFrame(() => {
-    if (isNearBottom) {
-      // Kalau user lagi di bawah → langsung scroll ke bawah
-      chatArea.scrollTop = chatArea.scrollHeight;
-    } else {
-      // Kalau user sedang di atas → tambahkan hitungan pesan baru
-      newMsgCount++;
-      popup.textContent = `${newMsgCount} pesan baru`;
-      popup.classList.remove("hidden");
-    }
   });
-});
-
-// 🔹 Ketika user scroll manual
-chatArea.addEventListener("scroll", checkScrollPosition);
-
-// 🔹 Klik popup → scroll ke bawah & sembunyikan
-popup.addEventListener("click", () => {
-  chatArea.scrollTo({
-    top: chatArea.scrollHeight,
-    behavior: "smooth",
-  });
-  newMsgCount = 0;
-  popup.classList.add("hidden");
-});
 
   sendBtn.addEventListener('click', () => {
-    if (!isLoggedIn) {
-      alert("Silakan login terlebih dahulu untuk mengirim pesan ke global chat!");
-      return;
-    }
-
+    if (!isLoggedIn) return alert("Silakan login terlebih dahulu!");
     const text = input.value.trim();
     if (!text) return;
-
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const currentUser = auth.currentUser;
 
-    push(chatRef, {
-      text,
-      sender: username,
-      time,
-      email: currentUser.email
-    })
+    push(chatRef, { text, sender: username, time, email: currentUser.email })
       .then(() => {
         input.value = '';
         input.focus();
-        chatArea.scrollTo({
-          top: chatArea.scrollHeight,
-          behavior: "smooth"
-        });
+        chatArea.scrollTop = chatArea.scrollHeight;
       })
       .catch(err => console.error('Send error:', err));
   });
