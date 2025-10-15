@@ -72,6 +72,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBCz40oTe3y1bcpfxZY8wl4ZPf-Jm-Yn08",
@@ -201,23 +202,23 @@
     chatArea.appendChild(bubble);
   }
 
-onValue(chatRef, snapshot => {
-  // Hapus semua pesan lama
-  chatArea.innerHTML = "";
 
-  // Render ulang semua pesan
-  snapshot.forEach(child => {
-    const m = child.val();
-    renderMessage(m.text, m.sender, m.time, m.email);
-  });
 
-  // 🔽 Selalu auto-scroll ke bawah setiap kali ada update pesan
+// Kosongkan dulu area chat saat awal
+chatArea.innerHTML = "";
+
+// Dengarkan pesan baru secara realtime
+onChildAdded(chatRef, snapshot => {
+  const m = snapshot.val();
+  renderMessage(m.text, m.sender, m.time, m.email);
+
+  // 🔽 Scroll otomatis setiap kali pesan baru muncul
   setTimeout(() => {
     chatArea.scrollTo({
       top: chatArea.scrollHeight,
       behavior: "smooth"
     });
-  }, 200);
+  }, 100);
 });
 
   sendBtn.addEventListener('click', () => {
