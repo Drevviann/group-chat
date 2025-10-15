@@ -68,195 +68,187 @@
     </button>
   </footer>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBCz40oTe3y1bcpfxZY8wl4ZPf-Jm-Yn08",
-      authDomain: "group-chat-5eb24.firebaseapp.com",
-      projectId: "group-chat-5eb24",
-      storageBucket: "group-chat-5eb24.firebasestorage.app",
-      databaseURL: "https://group-chat-5eb24-default-rtdb.firebaseio.com",
-      messagingSenderId: "1035715492375",
-      appId: "1:1035715492375:web:3543ae1fcdecea8c0e7a52"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyBCz40oTe3y1bcpfxZY8wl4ZPf-Jm-Yn08",
+    authDomain: "group-chat-5eb24.firebaseapp.com",
+    projectId: "group-chat-5eb24",
+    storageBucket: "group-chat-5eb24.firebasestorage.app",
+    databaseURL: "https://group-chat-5eb24-default-rtdb.firebaseio.com",
+    messagingSenderId: "1035715492375",
+    appId: "1:1035715492375:web:3543ae1fcdecea8c0e7a52"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const chatRef = ref(db, "cerydra_group");
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const chatRef = ref(db, "cerydra_group");
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
 
-    const input = document.getElementById('messageInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const chatArea = document.getElementById('chatArea');
-    const userArea = document.getElementById('userArea');
+  const input = document.getElementById('messageInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const chatArea = document.getElementById('chatArea');
+  const userArea = document.getElementById('userArea');
 
-    let username = localStorage.getItem('username') || "Guest_" + Math.floor(Math.random() * 1000);
-    let isLoggedIn = false;
+  let username = localStorage.getItem('username') || "Guest_" + Math.floor(Math.random() * 1000);
+  let isLoggedIn = false;
 
-    function updateUserUI(user) {
-  if (user) {
-    isLoggedIn = true;
-    username = user.displayName || username;
+  // 🔹 Fungsi untuk memotong nama jadi 4 karakter
+  function shortName(name) {
+    return name.length > 4 ? name.substring(0, 4).toUpperCase() + "..." : name.toUpperCase();
+  }
+
+  function updateUserUI(user) {
+    if (user) {
+      isLoggedIn = true;
+      username = user.displayName || username;
+      localStorage.setItem('username', username);
+
+      const isVerified = user.email === "drevviann@gmail.com";
+      const verifiedBadge = isVerified
+        ? `<img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
+                alt="verified" class="w-3.5 h-3.5 ml-1 inline-block align-middle" />`
+        : "";
+
+      // 🔹 tampilkan hanya 4 huruf pertama
+      const displayName = shortName(username);
+
+      userArea.innerHTML = `
+        <div class="flex items-center gap-2">
+          <img src="${user.photoURL || 'https://i.imgur.com/0y0y0y0.png'}"
+               class="w-8 h-8 rounded-full border border-gray-600">
+          <span id="displayUsername" class="font-medium">${displayName}${verifiedBadge}</span>
+          <i id="editName" class="ri-pencil-line text-gray-300 hover:text-white text-lg cursor-pointer"></i>
+          <i id="logoutBtn" class="ri-logout-box-r-line text-red-400 hover:text-red-500 text-lg cursor-pointer"></i>
+        </div>
+      `;
+
+      document.getElementById('editName').addEventListener('click', editUsername);
+      document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
+    } else {
+      isLoggedIn = false;
+      userArea.innerHTML = `
+        <button id="loginBtn"
+                class="bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-lg transition text-white flex items-center gap-2">
+          <i class="ri-google-fill text-lg"></i>
+        </button>
+      `;
+      document.getElementById('loginBtn').addEventListener('click', handleLogin);
+    }
+  }
+
+  function handleLogin() {
+    signInWithPopup(auth, provider)
+      .then(result => updateUserUI(result.user))
+      .catch(err => console.error("Login error:", err));
+  }
+
+  function editUsername() {
+    if (!isLoggedIn) return alert("Hanya pengguna login yang bisa mengganti nama!");
+    const newName = prompt("Ubah nama (maks. 12 karakter):", username);
+    if (!newName) return;
+    if (newName.length > 12) return alert("Maksimal 12 karakter!");
+    username = newName.trim();
     localStorage.setItem('username', username);
+    document.getElementById('displayUsername').innerText = shortName(username);
+  }
 
-    const isVerified = user.email === "drevviann@gmail.com"; // 👈 centang biru hanya untuk email ini
-    const verifiedBadge = isVerified
+  onAuthStateChanged(auth, user => updateUserUI(user));
+
+  function renderMessage(text, sender, time, email = null) {
+    const currentUser = auth.currentUser;
+    const isYouLoggedIn = currentUser && email === currentUser.email;
+    const isYouGuest = !currentUser && sender === username;
+    const isVerifiedSender = email === "drevviann@gmail.com";
+
+    const bubbleColor = isYouLoggedIn
+      ? "bg-[#005c4b]"
+      : isYouGuest
+        ? "bg-[#1f1f1f]"
+        : "bg-[#1f1f1f]";
+
+    const bubble = document.createElement('div');
+    bubble.className = `
+      ${isYouLoggedIn ? "self-end" : "self-start"}
+      ${bubbleColor}
+      text-gray-200 rounded-2xl px-3 py-2 max-w-[80%] text-sm shadow
+    `;
+
+    const verifiedBadge = isVerifiedSender
       ? `<img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
-              alt="verified" class="w-3.5 h-3.5 ml-1 inline-block align-middle" />`
+               alt="verified" class="w-3 h-3 ml-1 inline-block align-middle" />`
       : "";
 
-    // ✂️ Potong nama jika bukan verified dan lebih dari 3 karakter
-    const displayName = isVerified
-      ? username
-      : username.length > 3
-        ? username.substring(0, 3) + "..."
-        : username;
-
-    userArea.innerHTML = `
-      <div class="flex items-center gap-2">
-        <img src="${user.photoURL || 'https://i.imgur.com/0y0y0y0.png'}"
-             class="w-8 h-8 rounded-full border border-gray-600">
-        <span id="displayUsername" class="font-medium">${displayName}${verifiedBadge}</span>
-        <i id="editName" class="ri-pencil-line text-gray-300 hover:text-white text-lg cursor-pointer"></i>
-        <i id="logoutBtn" class="ri-logout-box-r-line text-red-400 hover:text-red-500 text-lg cursor-pointer"></i>
+    bubble.innerHTML = `
+      <div class='flex items-end gap-2 flex-wrap justify-end'>
+        <span class='break-words leading-tight text-white'>${text}</span>
+        <span class='flex items-center gap-1 text-[11px] text-gray-300 whitespace-nowrap'>
+          ${time}
+          ${isYouLoggedIn ? "<i class='ri-check-double-line text-gray-400 text-[13px]'></i>" : ""}
+        </span>
       </div>
+      ${!isYouLoggedIn ? `
+        <div class='text-[11px] text-gray-400 mt-1 ml-1 flex items-center'>
+          ${sender}${verifiedBadge}
+        </div>
+      ` : ""}
     `;
 
-    document.getElementById('editName').addEventListener('click', editUsername);
-    document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
-  } else {
-    isLoggedIn = false;
-    userArea.innerHTML = `
-      <button id="loginBtn"
-              class="bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded-lg transition text-white flex items-center gap-2">
-        <i class="ri-google-fill text-lg"></i>
-      </button>
-    `;
-    document.getElementById('loginBtn').addEventListener('click', handleLogin);
+    chatArea.appendChild(bubble);
   }
-}
 
-    function handleLogin() {
-      signInWithPopup(auth, provider)
-        .then(result => updateUserUI(result.user))
-        .catch(err => console.error("Login error:", err));
+  // 🔹 Render dan auto-scroll jika ada pesan baru
+  onValue(chatRef, snapshot => {
+    const currentScroll = chatArea.scrollTop + chatArea.clientHeight;
+    const atBottom = currentScroll >= chatArea.scrollHeight - 50;
+
+    chatArea.innerHTML = "";
+    snapshot.forEach(child => {
+      const m = child.val();
+      renderMessage(m.text, m.sender, m.time, m.email);
+    });
+
+    // 🔽 Auto-scroll hanya jika user di bawah (atau saat pesan baru datang)
+    if (atBottom) {
+      chatArea.scrollTo({
+        top: chatArea.scrollHeight,
+        behavior: "smooth"
+      });
     }
-
-    function editUsername() {
-      if (!isLoggedIn) return alert("Hanya pengguna login yang bisa mengganti nama!");
-      const newName = prompt("Ubah nama (maks. 12 karakter):", username);
-      if (!newName) return;
-      if (newName.length > 12) return alert("Maksimal 12 karakter!");
-      username = newName.trim();
-      localStorage.setItem('username', username);
-      document.getElementById('displayUsername').innerText = username;
-    }
-
-    onAuthStateChanged(auth, user => updateUserUI(user));
-
-    function renderMessage(text, sender, time, email = null) {
-  const currentUser = auth.currentUser;
-  const isYouLoggedIn = currentUser && email === currentUser.email;
-  const isYouGuest = !currentUser && sender === username;
-
-  // Apakah pengirim adalah verified user
-  const isVerifiedSender = email === "drevviann@gmail.com";
-
-  // Warna bubble tergantung kondisi
-  const bubbleColor = isYouLoggedIn
-    ? "bg-[#005c4b]" // hijau jika user sedang login di akun Google-nya
-    : isYouGuest
-      ? "bg-[#1f1f1f]" // hitam jika guest logout (atau usernya sudah tidak aktif)
-      : "bg-[#1f1f1f]"; // default hitam untuk pesan orang lain
-
-  const bubble = document.createElement('div');
-  bubble.className = `
-    ${isYouLoggedIn ? "self-end" : "self-start"}
-    ${bubbleColor}
-    text-gray-200 rounded-2xl px-3 py-2 max-w-[80%] text-sm shadow
-  `;
-
-  // Centang biru untuk verified user
-  const verifiedBadge = isVerifiedSender
-    ? `<img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
-             alt="verified" class="w-3 h-3 ml-1 inline-block align-middle" />`
-    : "";
-
-  // Isi bubble
-  bubble.innerHTML = `
-    <div class='flex items-end gap-2 flex-wrap justify-end'>
-      <span class='break-words leading-tight text-white'>${text}</span>
-      <span class='flex items-center gap-1 text-[11px] text-gray-300 whitespace-nowrap'>
-        ${time}
-        ${isYouLoggedIn ? "<i class='ri-check-double-line text-gray-400 text-[13px]'></i>" : ""}
-      </span>
-    </div>
-    ${!isYouLoggedIn ? `
-      <div class='text-[11px] text-gray-400 mt-1 ml-1 flex items-center'>
-        ${sender}${verifiedBadge}
-      </div>
-    ` : ""}
-  `;
-
-  chatArea.appendChild(bubble);
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-    onValue(chatRef, snapshot => {
-  chatArea.innerHTML = "";
-  snapshot.forEach(child => {
-    const m = child.val();
-    renderMessage(m.text, m.sender, m.time, m.email);
   });
 
-  // Scroll ke bawah setiap kali pesan baru datang
-  setTimeout(() => {
-    chatArea.scrollTo({
-      top: chatArea.scrollHeight,
-      behavior: "smooth"
-    });
-  }, 300);
-});
+  sendBtn.addEventListener('click', () => {
+    if (!isLoggedIn) {
+      alert("Silakan login terlebih dahulu untuk mengirim pesan ke global chat!");
+      return;
+    }
 
-    sendBtn.addEventListener('click', () => {
-  if (!isLoggedIn) {
-    alert("Silakan login terlebih dahulu untuk mengirim pesan ke global chat!");
-    return;
-  }
+    const text = input.value.trim();
+    if (!text) return;
 
-  const text = input.value.trim();
-  if (!text) return;
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const currentUser = auth.currentUser;
 
-  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  const currentUser = auth.currentUser;
-
-  push(chatRef, {
-    text,
-    sender: username,
-    time,
-    email: currentUser.email
-  })
-    .then(() => {
-      input.value = '';
-      console.log('Message sent!');
-
-      // 🧩 Fokuskan kembali ke input biar keyboard tetap terbuka
-      input.focus();
-
-      // 🔽 Scroll otomatis ke bawah setelah pesan baru muncul
-      setTimeout(() => {
+    push(chatRef, {
+      text,
+      sender: username,
+      time,
+      email: currentUser.email
+    })
+      .then(() => {
+        input.value = '';
+        input.focus();
         chatArea.scrollTo({
           top: chatArea.scrollHeight,
           behavior: "smooth"
         });
-      }, 200);
-    })
-    .catch(err => console.error('Send error:', err));
-});
-  </script>
+      })
+      .catch(err => console.error('Send error:', err));
+  });
+</script>
 </body>
 </html>
