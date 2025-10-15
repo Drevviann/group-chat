@@ -53,6 +53,12 @@
   <main id="chatArea"
     class="flex-1 overflow-y-auto bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXw4_2ttij018oKbf-g2jZbqQ_94vTh7Lqnl2twm0gjQ&s=10')] bg-cover bg-center p-3 sm:p-4 flex flex-col gap-3 sm:gap-4">
   </main>
+  
+  <!-- 🔔 Notifikasi jumlah pesan baru -->
+<div id="newMsgPopup"
+     class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full text-sm shadow-lg cursor-pointer z-50 transition">
+  1 pesan baru
+</div>
 
   <!-- Input Area -->
   <footer class="flex items-center gap-2 sm:gap-3 bg-[#202c33] p-2 sm:p-3">
@@ -201,20 +207,53 @@
     chatArea.appendChild(bubble);
   }
 
-
-
-
 chatArea.innerHTML = "";
+const popup = document.getElementById("newMsgPopup");
 
-// 🔥 Dengarkan setiap pesan baru
+let isNearBottom = true;
+let newMsgCount = 0;
+
+// 🔹 Cek posisi scroll (apakah user sedang di bawah?)
+function checkScrollPosition() {
+  const distanceFromBottom = chatArea.scrollHeight - (chatArea.scrollTop + chatArea.clientHeight);
+  isNearBottom = distanceFromBottom < 100; // kalau jarak <100px dianggap di bawah
+
+  // Jika user sudah scroll ke bawah, sembunyikan popup dan reset counter
+  if (isNearBottom && newMsgCount > 0) {
+    newMsgCount = 0;
+    popup.classList.add("hidden");
+  }
+}
+
+// 🔹 Dengarkan pesan baru
 onChildAdded(chatRef, (snapshot) => {
   const m = snapshot.val();
   renderMessage(m.text, m.sender, m.time, m.email);
 
-  // 🔽 Pastikan auto-scroll berfungsi di semua browser
   requestAnimationFrame(() => {
-    chatArea.scrollTop = chatArea.scrollHeight;
+    if (isNearBottom) {
+      // Kalau user lagi di bawah → langsung scroll ke bawah
+      chatArea.scrollTop = chatArea.scrollHeight;
+    } else {
+      // Kalau user sedang di atas → tambahkan hitungan pesan baru
+      newMsgCount++;
+      popup.textContent = `${newMsgCount} pesan baru`;
+      popup.classList.remove("hidden");
+    }
   });
+});
+
+// 🔹 Ketika user scroll manual
+chatArea.addEventListener("scroll", checkScrollPosition);
+
+// 🔹 Klik popup → scroll ke bawah & sembunyikan
+popup.addEventListener("click", () => {
+  chatArea.scrollTo({
+    top: chatArea.scrollHeight,
+    behavior: "smooth",
+  });
+  newMsgCount = 0;
+  popup.classList.add("hidden");
 });
 
   sendBtn.addEventListener('click', () => {
