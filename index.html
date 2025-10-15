@@ -14,14 +14,18 @@
       color: #fff;
       font-family: 'Inter', sans-serif;
       display: flex;
+      overflow: hidden;
       flex-direction: column;
       height: calc(var(--vh, 1vh) * 100);
     }
     
-    #chatArea {
+#chatArea {
   overflow-y: auto;
   scroll-behavior: smooth;
-  transition: scroll 0.3s ease-out;
+  transition: scroll 0.4s ease-out;
+  height: 100%;
+  width: 100%;
+  will-change: scroll-position;
 }
     main {
   flex: 1;
@@ -59,9 +63,11 @@
     </div>
   </header>
 
-<main id="chatArea"
-  class="flex-1 overflow-y-auto bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXw4_2ttij018oKbf-g2jZbqQ_94vTh7Lqnl2twm0gjQ&s=10')] bg-cover bg-center p-3 sm:p-4 space-y-3 sm:space-y-4">
-</main>
+<section class="flex-1 overflow-hidden relative">
+  <div id="chatArea"
+       class="absolute inset-0 overflow-y-auto bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSXw4_2ttij018oKbf-g2jZbqQ_94vTh7Lqnl2twm0gjQ&s=10')] bg-cover bg-center p-3 sm:p-4 space-y-3 sm:space-y-4">
+  </div>
+</section>
   
   <!-- 🔔 Notifikasi jumlah pesan baru -->
 <div id="newMsgPopup"
@@ -209,30 +215,34 @@ onChildAdded(chatRef, snapshot => {
   const m = snapshot.val();
   renderMessage(m.text, m.sender, m.time, m.email);
 
-  // Gunakan MutationObserver supaya scroll baru dijalankan setelah DOM siap
-  const observer = new MutationObserver(() => {
-    observer.disconnect();
-    smoothScrollToBottom();
+  // Jalankan scroll setelah DOM update
+  requestAnimationFrame(() => {
+    smoothScrollToBottom(chatArea);
   });
-  observer.observe(chatArea, { childList: true });
 });
 
-function smoothScrollToBottom() {
-  const start = chatArea.scrollTop;
-  const end = chatArea.scrollHeight;
+// Animasi scroll halus
+function smoothScrollToBottom(element) {
+  const start = element.scrollTop;
+  const end = element.scrollHeight - element.clientHeight;
   const distance = end - start;
-  const duration = 500; // ms
+  if (distance < 5) return;
+
+  const duration = 500;
   const startTime = performance.now();
 
-  function animateScroll(currentTime) {
-    const elapsed = currentTime - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    const ease = 1 - Math.pow(1 - progress, 3); // easeOutCubic
-    chatArea.scrollTop = start + distance * ease;
-    if (progress < 1) requestAnimationFrame(animateScroll);
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
   }
 
-  requestAnimationFrame(animateScroll);
+  function animate(time) {
+    const elapsed = time - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    element.scrollTop = start + distance * easeOutCubic(progress);
+    if (progress < 1) requestAnimationFrame(animate);
+  }
+
+  requestAnimationFrame(animate);
 }
 
   // --- Kirim pesan ---
