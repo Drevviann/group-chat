@@ -452,7 +452,7 @@ function updateUserUI(user) {
         <img src="${user.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10"}"
              class="w-8 h-8 rounded-full border border-gray-600">
         <span id="displayUsername" class="font-medium ${isVerified ? 'text-red-500' : 'text-white'}">${displayName}${verifiedBadge}</span>
-
+        <i id="editName" class="ri-pencil-line text-gray-300 hover:text-white text-lg cursor-pointer"></i>
         <i id="logoutBtn" class="ri-logout-box-r-line text-red-400 hover:text-red-500 text-lg cursor-pointer"></i>
       </div>
     `;
