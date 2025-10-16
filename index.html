@@ -8,7 +8,55 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
 
   <style>
-  
+#typingIndicator {
+  position: fixed;
+  bottom: 70px; /* pas di atas kolom input */
+  left: 6px;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s ease;
+  z-index: 40;
+}
+#typingIndicator.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+#typingAvatars img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #111b21;
+  object-fit: cover;
+}
+.bubble {
+  background: #2a3942;
+}
+@keyframes bounce1 {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+@keyframes bounce2 {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+@keyframes bounce3 {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+.dot {
+  animation: bounce1 1.4s infinite ease-in-out both;
+}
+.dot:nth-child(2) {
+  animation-name: bounce2;
+  animation-delay: 0.16s;
+}
+.dot:nth-child(3) {
+  animation-name: bounce3;
+  animation-delay: 0.32s;
+}
+
 /* Gaya untuk pesan yang dihapus */
 .deleted-message {
   color: #9ca3af; /* abu-abu netral */
@@ -122,15 +170,11 @@ input[disabled] {
   overflow-y: auto;
   scroll-behavior: smooth;
   transition: scroll 0.4s ease-out;
-  height: 100%;
+  height: calc(100vh - 70px); /* tinggi layar dikurangi tinggi footer */
   width: 100%;
   will-change: scroll-position;
-  padding-bottom: 100px !important;
-}
-    main {
-  flex: 1;
-  overflow-y: auto;
-  scroll-behavior: smooth;
+  padding-bottom: 120px; /* beri jarak agar pesan terakhir tidak tertutup */
+  box-sizing: border-box;
 }
 footer {
   position: fixed !important;
@@ -155,14 +199,14 @@ footer {
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden">
         <img src="
-        https://media.tenor.com/bZId7Fns3DoAAAAM/cerydra-hsr.gif"
+        https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Flag_of_Japan.svg/250px-Flag_of_Japan.svg.png"
              alt="pp saluran" class="w-full h-full object-cover">
       </div>
       <div class="flex flex-col text-sm sm:text-base">
         <span class="font-semibold flex items-center gap-1 text-white">
 
             
-          KSD Tbk.
+           ヤサイノメタ Tbk.
          
 
           <img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
@@ -171,7 +215,9 @@ footer {
                
          
         </span>
-        <span class="text-xs sm:text-sm text-gray-400">PT Karya Surya DreVviann</span>
+    <span id="chatStatus" class="text-xs sm:text-sm text-gray-400">
+       ヤサイノメタ
+    </span>
       </div>
     </div>
 
@@ -189,10 +235,14 @@ footer {
   </div>
 </section>
   
-  <!-- 🔔 Notifikasi jumlah pesan baru -->
-<div id="newMsgPopup"
-     class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-2 rounded-full text-sm shadow-lg cursor-pointer z-50 transition">
-  1 pesan baru
+<!-- Typing indicator (versi grup) -->
+<div id="typingIndicator" class="hidden flex items-center gap-2 px-4 pb-2">
+  <div id="typingAvatars" class="flex -space-x-3"></div>
+  <div class="bubble flex items-center justify-center px-3 py-2 bg-[#2a3942] rounded-2xl">
+    <div class="dot bg-gray-400 w-2 h-2 rounded-full mx-[2px] animate-bounce1"></div>
+    <div class="dot bg-gray-400 w-2 h-2 rounded-full mx-[2px] animate-bounce2"></div>
+    <div class="dot bg-gray-400 w-2 h-2 rounded-full mx-[2px] animate-bounce3"></div>
+  </div>
 </div>
 
 <!-- Input Area -->
@@ -235,6 +285,10 @@ footer {
     <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
     <img src="https://github.com/Drevviann/group-chat/blob/main/IMG-20251015-WA0184.jpg?raw=true" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
         <img src="https://media2.giphy.com/media/v1.Y2lkPTZjMDliOTUybW04Z2Zjdm1qd245MXBrcDQ0OHljbGRzbzZlaHF5c3RsZGVua3A4aSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Q0VvDkS4j4Ia2RjAOS/giphy.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSK1mjjJGbSU1_G-zv7LtSPnVTykBIXxXLI3-U7KaahI0TjOM5c21k1SQ&s=10" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTktTYdgsjpaqCWN3z-O1g_37gpJgCEjbp_qD_3Y_9kzBk_14sRENQ5f_D&s=10" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHfyz8wy1dbJfPOSGoCPzKrp69v4fxpBQo_Q4v-axvk10IpgWr_PeKcoM&s=10" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+                                        <img src="https://media2.giphy.com/media/v1.Y2lkPTZjMDliOTUybW04Z2Zjdm1qd245MXBrcDQ0OHljbGRzbzZlaHF5c3RsZGVua3A4aSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Q0VvDkS4j4Ia2RjAOS/giphy.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
   </div>
 </footer>
 
@@ -286,7 +340,9 @@ import {
   update,
   onChildAdded,
   onChildChanged,
-  onValue
+  onValue,
+  onDisconnect,
+  remove
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const firebaseConfig = {
     apiKey: "AIzaSyBCz40oTe3y1bcpfxZY8wl4ZPf-Jm-Yn08",
@@ -314,8 +370,58 @@ import {
   let isLoggedIn = false;
   let newMsgCount = 0;
   let isNearBottom = true;
+  
 
-  // --- Nama user maksimum 3 huruf ---
+// === Typing Indicator (Grup Style) ===
+const typingRef = ref(db, "typing");
+const typingIndicator = document.getElementById("typingIndicator");
+const typingAvatars = document.getElementById("typingAvatars");
+const messageInput = document.getElementById("messageInput");
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    const userTypingRef = ref(db, `typing/${user.uid}`);
+    let typingTimeout;
+
+    messageInput.addEventListener("input", () => {
+      set(userTypingRef, {
+        email: user.email,
+        photoURL: user.photoURL,
+        typing: true
+      });
+
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        remove(userTypingRef);
+      }, 300);
+    });
+
+    onDisconnect(userTypingRef).remove();
+  }
+});
+
+// 🔹 Tampilkan semua user yang sedang mengetik
+onValue(typingRef, snapshot => {
+  const typingUsers = [];
+  snapshot.forEach(child => {
+    const val = child.val();
+    if (val && val.typing) {
+      typingUsers.push(val.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png");
+    }
+  });
+
+  if (typingUsers.length > 0) {
+    typingAvatars.innerHTML = typingUsers
+      .map((url, i) => `<img src="${url}" style="z-index:${100 - i}">`)
+      .join("");
+    typingIndicator.classList.add("show");
+    typingIndicator.classList.remove("hidden");
+  } else {
+    typingIndicator.classList.remove("show");
+    setTimeout(() => typingIndicator.classList.add("hidden"), 300);
+  }
+});
+
   function shortName(name) {
     return name.length > 3 ? name.substring(0, 3).toUpperCase() + "..." : name.toUpperCase();
   }
@@ -346,7 +452,7 @@ function updateUserUI(user) {
         <img src="${user.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10"}"
              class="w-8 h-8 rounded-full border border-gray-600">
         <span id="displayUsername" class="font-medium ${isVerified ? 'text-red-500' : 'text-white'}">${displayName}${verifiedBadge}</span>
-        <i id="editName" class="ri-pencil-line text-gray-300 hover:text-white text-lg cursor-pointer"></i>
+
         <i id="logoutBtn" class="ri-logout-box-r-line text-red-400 hover:text-red-500 text-lg cursor-pointer"></i>
       </div>
     `;
