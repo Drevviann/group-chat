@@ -142,16 +142,15 @@ input[disabled] {
 
     :root { --vh: 100%; }
     body {
-      background-color: #0b141a;
-      color: #fff;
-      font-family: 'Inter', sans-serif;
-      display: flex;
-      overflow: hidden;
-      flex-direction: column;
-      min-height: 100vh;
-      overflow-x: hidden;
-      overflow-y: auto;
-    }
+  background-color: #0b141a;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(var(--vh, 1vh) * 100);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
     
     
 .verified-badge {
@@ -167,13 +166,12 @@ input[disabled] {
 }
   
 #chatArea {
+  height: calc(var(--vh, 1vh) * 100 - 70px);
   overflow-y: auto;
   scroll-behavior: smooth;
   transition: scroll 0.4s ease-out;
-  height: calc(100vh - 70px); /* tinggi layar dikurangi tinggi footer */
   width: 100%;
-  will-change: scroll-position;
-  padding-bottom: 120px; /* beri jarak agar pesan terakhir tidak tertutup */
+  padding-bottom: 120px;
   box-sizing: border-box;
 }
 footer {
@@ -320,6 +318,16 @@ footer {
   </div>
 </div>
 
+<script>
+function adjustViewportHeight() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+adjustViewportHeight();
+window.addEventListener('resize', adjustViewportHeight);
+window.addEventListener('orientationchange', adjustViewportHeight);
+</script>
+
 <script type="module">
   import {
   initializeApp
@@ -452,7 +460,7 @@ function updateUserUI(user) {
       <div class="flex items-center gap-2">
         <img src="${user.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10"}"
              class="w-8 h-8 rounded-full border border-gray-600">
-        <span id="displayUsername" class="font-medium ${isVerified ? 'text-red-500' : 'text-white'}">${displayName}${verifiedBadge}</span>
+        <span id="displayUsername" class="font-medium ${isVerified ? 'text-white' : 'text-white'}">${displayName}${verifiedBadge}</span>
         <i id="editName" class="ri-pencil-line text-gray-300 hover:text-white text-lg cursor-pointer"></i>
         <i id="logoutBtn" class="ri-logout-box-r-line text-red-400 hover:text-red-500 text-lg cursor-pointer"></i>
       </div>
@@ -562,7 +570,7 @@ function renderMessage(text, sender, time, email = null, photoURL = null, messag
     <img src="${photoURL || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRkjFpo1MyqtOZpX9eN2FpREP7noUsAvV_IDw&usqp=CAU'}"
          alt="profile"
          class="w-6 h-6 rounded-full object-cover mr-2" />
-<span class="font-medium ${isVerified ? "text-red-500" : "text-white"}">${displayName}</span>
+<span class="font-medium ${isVerified ? "text-white" : "text-white"}">${displayName}</span>
     ${verifiedBadge}
     <span class="text-[11px] text-gray-400 ml-2">${time}</span>
   </div>
