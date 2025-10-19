@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PTIKH</title>
+  <title>QualityeXchange</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
 
@@ -151,6 +151,59 @@ input[disabled] {
   overflow-x: hidden;
   overflow-y: auto;
 }
+
+/* Box reply di atas kolom input */
+#replyBox {
+  position: absolute;
+  bottom: 60px; /* pas di atas input */
+  left: 0;
+  right: 0;
+  background-color: #202c33; /* abu-abu gelap seperti WA */
+  border-left: 4px solid #00a884; /* warna hijau WA */
+  color: #e9edef;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+/* Saat disembunyikan */
+#replyBox.hidden {
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Teks pengirim */
+#replySender {
+  font-weight: 600;
+  color: #53bdeb;
+  font-size: 14px;
+}
+
+/* Teks isi chat yang direply */
+#replyText {
+  font-size: 13px;
+  color: #cfd4d8;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tombol close (X) */
+#cancelReply {
+  background: transparent;
+  border: none;
+  color: #8696a0;
+  font-size: 20px;
+  cursor: pointer;
+}
+#cancelReply:hover {
+  color: #fff;
+}
     
     
 .verified-badge {
@@ -197,31 +250,31 @@ footer {
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden">
         <img src="
-        https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Flag_of_Japan.svg/250px-Flag_of_Japan.svg.png"
+        https://cf.admin.appmysite.com/720961/735856/app_icon/display_image/ams_1760860527_6312.png"
              alt="pp saluran" class="w-full h-full object-cover">
       </div>
       <div class="flex flex-col text-sm sm:text-base">
         <span class="font-semibold flex items-center gap-1 text-white">
 
             
-           ヤサイノメタ Tbk.
+           QualityeXchange
          
 
-          <img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Twitter_Verified_Badge_Gold.svg/2048px-Twitter_Verified_Badge_Gold.svg.png"
                alt="verified"
-               class="w-3 h-3 sm:w-4 sm:h-4 object-contain" />
+               class="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain" />
                
          
         </span>
     <span id="chatStatus" class="text-xs sm:text-sm text-gray-400">
-       ヤサイノメタ
+       Cryptomarket Management
     </span>
       </div>
     </div>
 
     <!-- User/Login Area -->
     <div id="userArea" class="text-sm sm:text-base">
-      <button id="loginBtn" class="bg-transparent border border-white px-2 py-1 rounded-lg transition text-white">                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png"
+      <button id="loginBtn" class="bg-transparent px-2 py-1 rounded-lg transition text-white">                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png"
                alt="verified"
                class="w-6 h-6 sm:w-5 sm:h-5 object-contain" /></button>
     </div>
@@ -257,6 +310,13 @@ footer {
   <i class="ri-settings-3-line text-xl"></i>
 </button>
 
+<div id="replyBox" class="reply-box hidden">
+  <div class="reply-info">
+    <strong id="replyUser"></strong>
+    <span id="replyText"></span>
+  </div>
+  <button id="cancelReply">&times;</button>
+</div>
 
   <!-- Input -->
   <div class="flex items-center flex-1 bg-[#2a3942] rounded-full px-3 sm:px-4 py-2 sm:py-3">
@@ -299,9 +359,9 @@ footer {
 
 <div id="verifyOverlay" class="hidden">
   <div id="verifyPopup" class="flex flex-col items-center">
-    <!-- 🔵 Ikon centang biru dengan latar bulat hitam -->
+
     <div class="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center mb-3">
-      <img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Twitter_Verified_Badge_Gold.svg/2048px-Twitter_Verified_Badge_Gold.svg.png"
            alt="verified"
            class="w-8 h-8 object-contain" />
     </div>
@@ -472,7 +532,7 @@ function updateUserUI(user) {
     isLoggedIn = false;
     userArea.innerHTML = `
       <button id="loginBtn"
-              class="bg-transparent border border-white px-2 py-1 rounded-lg transition text-white">
+              class="bg-transparent px-2 py-1 rounded-lg transition text-white">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png"
              alt="google login"
              class="w-6 h-6 sm:w-5 sm:h-5 object-contain" />
@@ -560,7 +620,7 @@ function renderMessage(text, sender, time, email = null, photoURL = null, messag
 
   // 🔹 centang biru jika terverifikasi
   const verifiedBadge = isVerified
-    ? `<img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
+    ? `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Twitter_Verified_Badge_Gold.svg/2048px-Twitter_Verified_Badge_Gold.svg.png"
              alt="verified" class="w-3 h-3 ml-1 inline-block align-middle verified-badge-style-two" />`
     : "";
 
@@ -584,6 +644,7 @@ function renderMessage(text, sender, time, email = null, photoURL = null, messag
   bubble.innerHTML = headerHTML + contentHTML;
   wrapper.appendChild(bubble);
   chatArea.appendChild(wrapper);
+
 }
 
 function showDeletePopup(messageId) {
@@ -674,27 +735,38 @@ function smoothScrollToBottom(element) {
   requestAnimationFrame(animate);
 }
 
-  // --- Kirim pesan ---
-  sendBtn.addEventListener("click", () => {
-    if (!isLoggedIn) return alert("Silakan login terlebih dahulu!");
-    const text = input.value.trim();
-    if (!text) return;
-    const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    const currentUser = auth.currentUser;
-    push(chatRef, {
-  text,
-  sender: username,
-  time,
-  email: currentUser.email,
-  photoURL: currentUser.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10"
-})
-      .then(() => {
-        input.value = "";
-        input.focus();
-        chatArea.scrollTop = chatArea.scrollHeight;
-      })
-      .catch(err => console.error("Send error:", err));
+sendBtn.addEventListener("click", () => {
+  if (!isLoggedIn) return alert("Silakan login terlebih dahulu!");
+  const text = input.value.trim();
+  if (!text) return;
+
+  const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const currentUser = auth.currentUser;
+
+  let messageText = text;
+
+  // Jika sedang membalas pesan
+  if (replyData) {
+    messageText = `
+      <div class='text-sm border-l-4 border-blue-400 pl-2 mb-1 text-blue-400'>
+        <strong>${replyData.sender}</strong><br>${replyData.text}
+      </div>${text}
+    `;
+  }
+
+  push(chatRef, {
+    text: messageText,
+    sender: username,
+    time,
+    email: currentUser.email,
+    photoURL: currentUser.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10"
   });
+
+  input.value = "";
+  replyBox.classList.add("hidden");
+  replyData = null;
+  input.focus();
+});
   
   // --- Panel Sticker ---
 const openStickerBtn = document.getElementById("openStickerBtn");
@@ -762,6 +834,12 @@ document.addEventListener("click", e => {
 
 // Tutup popup bila klik area overlay
 verifyOverlay.addEventListener("click", closeVerifyPopup);
+
+
+
+
+
+
 
 </script>
 </body>
