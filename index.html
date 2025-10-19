@@ -267,7 +267,7 @@ footer {
          
         </span>
     <span id="chatStatus" class="text-xs sm:text-sm text-gray-400">
-       Cryptomarket Management
+       Cryptomarket Analysis
     </span>
       </div>
     </div>
@@ -510,7 +510,7 @@ function updateUserUI(user) {
 
     // ✅ Jika admin, beri centang biru di navbar
     const verifiedBadge = isVerified
-  ? `<img src="https://lookaside.fbsbx.com/elementpath/media/?media_id=778731283935334&version=1760038331"
+  ? `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Twitter_Verified_Badge_Gold.svg/2048px-Twitter_Verified_Badge_Gold.svg.png"
           alt="verified"
           class="verified-badge w-3 h-3 ml-1" />`
   : "";
@@ -745,14 +745,6 @@ sendBtn.addEventListener("click", () => {
 
   let messageText = text;
 
-  // Jika sedang membalas pesan
-  if (replyData) {
-    messageText = `
-      <div class='text-sm border-l-4 border-blue-400 pl-2 mb-1 text-blue-400'>
-        <strong>${replyData.sender}</strong><br>${replyData.text}
-      </div>${text}
-    `;
-  }
 
   push(chatRef, {
     text: messageText,
@@ -763,8 +755,6 @@ sendBtn.addEventListener("click", () => {
   });
 
   input.value = "";
-  replyBox.classList.add("hidden");
-  replyData = null;
   input.focus();
 });
   
