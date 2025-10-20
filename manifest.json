@@ -1,0 +1,23 @@
+{
+  "name": "QualityeXchange Media",
+  "short_name": "QualityeXchange",
+  "description": "Platform berita dan media interaktif milik QualityeXchange.",
+  "start_url": "/?utm_source=homescreen",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#FFD700",
+  "icons": [
+    {
+      "src": "https://cf.admin.appmysite.com/720961/735856/app_icon/display_image/ams_1760860527_6312.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cf.admin.appmysite.com/720961/735856/app_icon/display_image/ams_1760860527_6312.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
