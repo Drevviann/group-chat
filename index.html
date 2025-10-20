@@ -8,6 +8,65 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
 
   <style>
+.reply-box {
+  position: fixed;
+  bottom: 56px; /* di atas kolom input */
+  left: 0;
+  width: 100%;
+  background: #202c33;
+  border-left: 4px solid white;
+  padding: 10px 14px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 9999; /* biar di atas input */
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(15px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.reply-box .reply-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reply-box .reply-sender {
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.reply-box .reply-text {
+  color: #ccc;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reply-box button {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.reply-box button:hover {
+  color: #fff;
+}
 #typingIndicator {
   position: fixed;
   bottom: 70px; /* pas di atas kolom input */
@@ -209,13 +268,13 @@ input[disabled] {
 .verified-badge {
   display: inline-block;
   vertical-align: middle;
-  margin-top: -2.5px; /* sedikit naik supaya sejajar sempurna */
+  margin-top: -2px; /* sedikit naik supaya sejajar sempurna */
 }
 
 .verified-badge-style-two {
   display: inline-block;
   vertical-align: middle;
-  margin-top: -2px; /* sedikit naik supaya sejajar sempurna */
+  margin-top: -0.4px; /* sedikit naik supaya sejajar sempurna */
 }
   
 #chatArea {
@@ -267,13 +326,13 @@ footer {
          
         </span>
     <span id="chatStatus" class="text-xs sm:text-sm text-gray-400">
-       Cryptomarket Analysis
+       103.293 member
     </span>
       </div>
     </div>
 
     <!-- User/Login Area -->
-    <div id="userArea" class="text-sm sm:text-base">
+    <div id="userArea" class="hidden text-sm sm:text-base">
       <button id="loginBtn" class="bg-transparent px-2 py-1 rounded-lg transition text-white">                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/480px-Google_%22G%22_logo.svg.png"
                alt="verified"
                class="w-6 h-6 sm:w-5 sm:h-5 object-contain" /></button>
@@ -439,6 +498,78 @@ import {
   let isLoggedIn = false;
   let newMsgCount = 0;
   let isNearBottom = true;
+  // === SISTEM REPLY DENGAN DESAIN DINAMIS ===
+let replyTarget = null;
+let replyPreviewEl = null;
+
+function showReplyBox(sender, text, isSticker = false) {
+  clearReplyBox(); // hapus yang lama
+
+  // buat elemen reply box baru
+  replyPreviewEl = document.createElement("div");
+  replyPreviewEl.className = "reply-box"; // pakai CSS desain yang sudah ada
+
+  // batasi teks dan nama
+  const displaySender = sender.length > 20 ? sender.substring(0, 20) + "..." : sender;
+  const displayText = isSticker ? "(Sticker)" : (text || "").substring(0, 40);
+
+  replyPreviewEl.innerHTML = `
+    <div class="reply-content">
+      <span class="reply-sender">@${displaySender}</span>
+      <span class="reply-text">${displayText}</span>
+    </div>
+    <button id="cancelReply">&times;</button>
+  `;
+
+  // tambahkan ke dalam <footer> agar posisinya tetap di atas input
+  const footer = document.querySelector("footer");
+  footer.appendChild(replyPreviewEl);
+
+  // event tombol ×
+  const cancelBtn = replyPreviewEl.querySelector("#cancelReply");
+  cancelBtn.addEventListener("click", clearReplyBox);
+
+  // simpan data target
+  replyTarget = { sender, text, isSticker };
+}
+
+function clearReplyBox() {
+  if (replyPreviewEl) {
+    replyPreviewEl.remove();
+    replyPreviewEl = null;
+  }
+  replyTarget = null;
+}
+
+// === GESTURE SWIPE KANAN UNTUK REPLY ===
+function enableReplyGesture(bubble, sender) {
+  let startX = 0;
+  bubble.addEventListener("touchstart", e => (startX = e.touches[0].clientX));
+  bubble.addEventListener("touchend", e => {
+    const diff = e.changedTouches[0].clientX - startX;
+    if (diff > 60) triggerReply(bubble, sender);
+  });
+
+  bubble.addEventListener("mousedown", e => (startX = e.clientX));
+  bubble.addEventListener("mouseup", e => {
+    const diff = e.clientX - startX;
+    if (diff > 60) triggerReply(bubble, sender);
+  });
+}
+
+function triggerReply(bubble, sender) {
+  const messageBody = bubble.querySelector(".message-body");
+  const hasImage = messageBody && messageBody.querySelector("img");
+
+  const isSticker = !!hasImage;
+  const text = messageBody ? messageBody.innerText.trim() : "";
+
+  replyTarget = { sender, text, isSticker };
+  showReplyBox(sender, text, isSticker);
+}
+
+
+
   
 
 // === Typing Indicator (Grup Style) ===
@@ -508,11 +639,11 @@ function updateUserUI(user) {
     ];
     const isVerified = verifiedAdmins.includes(user.email);
 
-    // ✅ Jika admin, beri centang biru di navbar
+    // ✅ Jika admin, beri centang  golden di navbar
     const verifiedBadge = isVerified
   ? `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Twitter_Verified_Badge_Gold.svg/2048px-Twitter_Verified_Badge_Gold.svg.png"
           alt="verified"
-          class="verified-badge w-3 h-3 ml-1" />`
+          class="verified-badge w-3.5 h-3.5 ml-1" />`
   : "";
 
     const displayName = shortName(username);
@@ -551,7 +682,7 @@ function updateUserUI(user) {
     sendBtn.classList.remove("opacity-50", "cursor-not-allowed");
 } else {
     input.disabled = true;
-    input.placeholder = "!disabled! Login terlebih dahulu!";
+    input.placeholder = "hanya admin yang bisa mengirim pesan!";
     sendBtn.disabled = true;
     sendBtn.classList.add("opacity-50", "cursor-not-allowed");
   }
@@ -582,9 +713,14 @@ function renderMessage(text, sender, time, email = null, photoURL = null, messag
 
   // 🔹 daftar akun terverifikasi
   const verifiedUsers = [
-    "drevviann@gmail.com",
-    "ridhofadillah1010@gmail.com"
-  ];
+  "drevviann@gmail.com",
+  "ridhofadillah1010@gmail.com"
+];
+
+const premiumUsers = [
+  "premiumuser@gmail.com",
+  "limitbreak@gmail.com"
+];
   const isVerified = verifiedUsers.includes(email);
 
   // wrapper bubble
@@ -621,7 +757,7 @@ function renderMessage(text, sender, time, email = null, photoURL = null, messag
   // 🔹 centang biru jika terverifikasi
   const verifiedBadge = isVerified
     ? `<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Twitter_Verified_Badge_Gold.svg/2048px-Twitter_Verified_Badge_Gold.svg.png"
-             alt="verified" class="w-3 h-3 ml-1 inline-block align-middle verified-badge-style-two" />`
+             alt="verified" class="w-3.5 h-3.5 ml-1 inline-block align-middle verified-badge-style-two" />`
     : "";
 
   // 🔹 Baris atas: foto profil di kiri nama + waktu di kanan
@@ -644,6 +780,7 @@ function renderMessage(text, sender, time, email = null, photoURL = null, messag
   bubble.innerHTML = headerHTML + contentHTML;
   wrapper.appendChild(bubble);
   chatArea.appendChild(wrapper);
+  enableReplyGesture(bubble, sender);
 
 }
 
@@ -735,6 +872,7 @@ function smoothScrollToBottom(element) {
   requestAnimationFrame(animate);
 }
 
+// === KIRIM PESAN ===
 sendBtn.addEventListener("click", () => {
   if (!isLoggedIn) return alert("Silakan login terlebih dahulu!");
   const text = input.value.trim();
@@ -742,16 +880,25 @@ sendBtn.addEventListener("click", () => {
 
   const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const currentUser = auth.currentUser;
-
   let messageText = text;
 
+if (replyTarget) {
+  const repliedText = replyTarget.isSticker ? "(Sticker)" : replyTarget.text;
+  messageText = `
+    <div class='text-sm border-l-4 border-gray-500 pl-2 mb-1 text-gray-300'>
+      Replied to @${replyTarget.sender}: ${repliedText}
+    </div>${text}`;
+  clearReplyBox();
+}
 
   push(chatRef, {
     text: messageText,
     sender: username,
     time,
     email: currentUser.email,
-    photoURL: currentUser.photoURL || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10"
+    photoURL:
+      currentUser.photoURL ||
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCIzI0ns7NQEyDF3q4uSycytPQglRhRPVNm4s1qWhdUg&s=10"
   });
 
   input.value = "";
