@@ -300,6 +300,12 @@ footer {
   backdrop-filter: blur(2px);
   font-weight: 500;
 }
+
+/* === Premium Badge: Gold Gradient Animation === */
+.premium-badge {
+  color: gold;
+}
+
   </style>
 </head>
 <body class="min-h-screen flex flex-col" id="body">
@@ -315,18 +321,24 @@ footer {
       <div class="flex flex-col text-sm sm:text-base">
         <span class="font-semibold flex items-center gap-1 text-white">
 
+          <img src="https://img-04.stickers.cloud/packs/37f68ce3-b384-45d5-a301-a52c450b9e3c/webp/b3ba4d0f-fde4-40a9-9227-aad19d3a0e01.webp"
+               alt="bitcoin"
+               class="w-3 h-3 object-contain" />
+               
             
-           QualityeXchange
+ QualityeXchange 
          
 
           <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Twitter_Verified_Badge_Gold.svg/2048px-Twitter_Verified_Badge_Gold.svg.png"
                alt="verified"
                class="w-3.5 h-3.5 sm:w-4 sm:h-4 object-contain" />
                
+               <span class="premium-badge px-1 text-[8px] font-semibold rounded-full">Premium</span>
+               
          
         </span>
     <span id="chatStatus" class="text-xs sm:text-sm text-gray-400">
-       103.293 member
+       152.072 Member
     </span>
       </div>
     </div>
@@ -399,14 +411,9 @@ footer {
   <div id="stickerPanel"
        class="hidden absolute bottom-16 left-2 bg-[#1f2c34] p-3 rounded-2xl shadow-xl grid grid-cols-4 sm:grid-cols-5 gap-2 border border-gray-700 z-50">
     <!-- contoh gambar sticker -->
-    <img src="https://media.tenor.com/lD7DpilxezIAAAAM/cerydra-cery-dra.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
-    <img src="https://i.pinimg.com/736x/f7/0f/57/f70f577fb62c9a3743b5f5d4902d7466.jpg" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
-        <img src="https://media2.giphy.com/media/v1.Y2lkPTZjMDliOTUybW04Z2Zjdm1qd245MXBrcDQ0OHljbGRzbzZlaHF5c3RsZGVua3A4aSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Q0VvDkS4j4Ia2RjAOS/giphy.gif" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
-                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSK1mjjJGbSU1_G-zv7LtSPnVTykBIXxXLI3-U7KaahI0TjOM5c21k1SQ&s=10" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTktTYdgsjpaqCWN3z-O1g_37gpJgCEjbp_qD_3Y_9kzBk_14sRENQ5f_D&s=10" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
-                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHfyz8wy1dbJfPOSGoCPzKrp69v4fxpBQo_Q4v-axvk10IpgWr_PeKcoM&s=10" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
-                                        <img src="https://i.pinimg.com/564x/16/93/df/1693dfbde6b9be3373c242a0d258aefe.jpg" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
-                                                                                <img src="https://i.pinimg.com/236x/b8/41/c0/b841c003508288e34ebf5da7e50fb23f.jpg" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+    <img src="https://img-04.stickers.cloud/packs/37f68ce3-b384-45d5-a301-a52c450b9e3c/webp/b3ba4d0f-fde4-40a9-9227-aad19d3a0e01.webp" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3i9JZ_Wt10I4sq9linVCGpYRVUiyYVmXV8Z4ZUIaMkFFyDtYj9GBZT03Q&s=10" class="w-14 h-14 rounded-lg cursor-pointer hover:opacity-80 transition" />
+
   </div>
 </footer>
 
@@ -874,7 +881,7 @@ function smoothScrollToBottom(element) {
 
 // === KIRIM PESAN ===
 sendBtn.addEventListener("click", () => {
-  if (!isLoggedIn) return alert("Silakan login terlebih dahulu!");
+  if (!isLoggedIn) return alert("hanya admin yang dapat mengirim pesan!");
   const text = input.value.trim();
   if (!text) return;
 
@@ -923,7 +930,7 @@ document.addEventListener("click", (e) => {
 // Klik salah satu sticker → kirim URL-nya sebagai pesan
 stickerPanel.querySelectorAll("img").forEach(img => {
   img.addEventListener("click", () => {
-    if (!isLoggedIn) return alert("Silakan login untuk mengirim pesan!");
+    if (!isLoggedIn) return alert("hanya admin yang dapat mengirim pesan!");
     const currentUser = auth.currentUser;
     const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
